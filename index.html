@@ -1,0 +1,1695 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>이미지 생성 응답 속도 비교 · quality=low</title>
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:system-ui,-apple-system,sans-serif;max-width:1180px;margin:0 auto;padding:32px 22px 64px;background:#fff;color:#222;line-height:1.55}
+h1{font-size:28px;letter-spacing:-.03em;margin:0 0 12px}h2{font-size:20px;margin:0 0 12px}h3{font-size:16px;margin:22px 0 12px}
+p{margin:9px 0}a{color:inherit}header{padding-bottom:22px;border-bottom:1px solid #222}section{padding:28px 0;border-bottom:1px solid #ddd}
+nav{display:flex;flex-wrap:wrap;gap:18px;margin-top:18px;font-size:13px}.muted,small{color:#666;font-size:12px}small{display:block}
+.status{font-weight:650}.note{font-size:13px;border-left:2px solid #999;padding-left:12px;margin:16px 0}.scroll{overflow:auto}
+.key-summary{margin:18px 0;border-left:2px solid #777;padding-left:14px}.key-summary h2{font-size:16px;margin:0 0 8px}
+.key-summary ul{margin:0;padding-left:18px}.key-summary li{font-size:13px;line-height:1.65;margin:6px 0}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #ddd;white-space:nowrap;vertical-align:top}
+thead th{border-bottom:1px solid #999;background:#f5f5f5;font-weight:650}th[scope=row]{font-weight:500}.scenario-name{white-space:normal;min-width:105px;max-width:145px}
+td small{font-size:10px;margin-top:3px}.quality{font-size:10px;color:#666;white-space:normal;min-width:80px}
+button,select{font:inherit;color:#222;background:#fff;border:1px solid #aaa;border-radius:2px;padding:7px 10px}button{cursor:pointer}
+button:disabled,select:disabled{opacity:.5;cursor:default}button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid #222;outline-offset:3px}
+.text-button{padding:0;border:0;text-decoration:underline;font-size:12px}.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:15px 0;font-size:13px}
+.stats-chart{display:block;width:100%;min-width:850px}.stat-grid{stroke:#ddd;stroke-dasharray:3 3}.stat-axis{fill:#666;font-size:10px}
+.stat-heading{fill:#222;font-size:13px;font-weight:650}.stat-mode{fill:#222;font-size:12px}.stat-value{fill:#444;font-size:11px}
+.stat-bar.first{fill:#bbb}.stat-bar.final{fill:#444}.stat-range{stroke:#777;stroke-width:1}.stat-sample{fill:#fff;stroke:#777;stroke-width:1}
+.detail-header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+#detail-stages{display:flex;gap:14px;overflow:auto;align-items:flex-start;padding:12px 0}.stage{margin:0;min-width:185px;flex:1}
+.stage img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;border:1px solid #ddd}.stage.final img{border:2px solid #444}
+figcaption{font-size:12px;padding:8px 0}figcaption strong,figcaption span{display:block}figcaption small{font-size:10px;margin-top:3px}
+.prompt-preview{aspect-ratio:1;overflow:auto;background:#f5f5f5;padding:12px;font-size:11px;margin:8px 0}.input>strong{font-size:12px}
+#stage-comparison{margin:14px 0}.mean-row{background:#f7f7f7}.image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.image-card{display:block;padding:0;text-align:left;border:1px solid #ddd;width:100%;overflow:hidden}
+.image-card.selected{border:2px solid #222}.image-card img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+.card-caption{display:block;padding:8px}.card-caption strong{display:block;font-size:12px}.card-caption small{font-size:10px}
+details{margin:16px 0}summary{cursor:pointer;font-size:13px;font-weight:600}.image-error,#error{font-size:13px;color:#222;background:#eee;padding:10px}
+#error[hidden],[hidden]{display:none!important}.timeline{min-width:650px}.timeline-axis,.timeline-row{display:grid;grid-template-columns:105px minmax(0,1fr);gap:14px}
+.timeline-axis{height:30px}.axis-track{position:relative;font-size:10px;color:#666}.axis-track span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.axis-track span:first-child{transform:none}.axis-track span:last-child{transform:translateX(-100%)}.timeline-name{font-size:12px;white-space:nowrap}
+.time-track{position:relative;height:15px;background:#f1f1f1;margin-top:3px}.header-wait{position:absolute;left:0;top:0;height:100%;background:#ddd}
+.preview-band{position:absolute;top:0;height:100%;background:#bbb}.time-marker{position:absolute;top:-3px;height:21px;width:2px;background:#555}
+.time-marker.final{width:7px;height:7px;top:4px;background:#222;transform:translateX(-3px) rotate(45deg)}
+.time-label{position:absolute;font-size:10px;line-height:17px;white-space:nowrap}.time-label.center{transform:translateX(-50%)}.time-label.right{transform:translateX(-100%)}
+.timeline-row.average{border-top:1px dashed #888;padding-top:7px;background:#f7f7f7}.timeline-row.selected .timeline-name{font-weight:750}
+.timeline-pending{font-size:10px;padding-left:8px;color:#666}.players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.player h4{font-size:12px;margin:8px 0}.frame{position:relative;aspect-ratio:1;background:#f1f1f1;display:grid;place-items:center}
+.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.placeholder,.phase,.play-status{font-size:11px;color:#666}
+.clock{font-size:15px;font-variant-numeric:tabular-nums}.phase{min-height:20px}.play-status{flex-basis:100%}
+code{font-size:11px;background:#f3f3f3;padding:1px 4px}li{margin:7px 0}
+#runs img{cursor:zoom-in}
+#image-zoom{width:min(1200px,96vw);max-width:96vw;height:90vh;max-height:90vh;padding:16px;border:1px solid #aaa}
+#image-zoom[open]{display:flex;flex-direction:column;gap:12px}#image-zoom::backdrop{background:rgba(0,0,0,.72)}
+.zoom-header{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:flex-start;flex-shrink:0}
+.zoom-header h2{font-size:16px;flex:1 1 240px;margin:0}.zoom-actions{display:flex;gap:8px;flex-shrink:0;font-size:13px}
+.zoom-stage{flex:1;min-width:0;min-height:0;overflow:auto;background:#f5f5f5}
+#image-zoom-image{display:block;width:100%;height:100%;object-fit:contain}
+#image-zoom.original-size #image-zoom-image{width:auto;height:auto;max-width:none;max-height:none}
+body:has(#image-zoom[open]){overflow:hidden}
+@media(max-width:600px){body{padding:20px 12px}h1{font-size:24px}.players{grid-template-columns:repeat(2,minmax(0,1fr))}.image-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stage{min-width:190px}}
+@media print{body{max-width:none;padding:0}.controls,.image-grid,.replay,nav{display:none}.scroll{overflow:visible}.stats-chart{min-width:0}section{break-inside:avoid}}
+</style></head><body>
+<header><h1>이미지 생성 응답 속도 비교 · quality=low</h1>
+<div id="key-summary" class="key-summary" aria-labelledby="key-summary-title"><h2 id="key-summary-title">핵심 요약</h2>
+<ul><li><strong>파셜이란</strong> · 최종 이미지가 완성되기 전에 중간 미리보기를 먼저 받는 방식입니다. partial=1은 중간 이미지 P1을 최대 1장 요청하며, 이후 최종 이미지를 받습니다. P1은 생략될 수 있습니다.</li><li><strong>일상 사진 생성</strong> · P1 평균 20.5초 (−8.9% 단축) · 최종 평균 28.3초 (+26.1% 증가). 일반 최종 평균 22.5초 기준 · P1 수신 11/12회.</li><li><strong>전체 사진 스타일 변환</strong> · P1 평균 24.7초 (−22.5% 단축) · 최종 평균 29.9초 (−6.1% 단축). 일반 최종 평균 31.9초 기준 · P1 수신 12/12회.</li><li><strong>얼굴·반려동물 캐릭터 변환</strong> · P1 평균 27.0초 (−13.1% 단축) · 최종 평균 35.5초 (+14.5% 증가). 일반 최종 평균 31.0초 기준 · P1 수신 11/12회.</li><li><strong>해석</strong> · 이번 측정에서는 전체 사진 스타일 변환은 P1·최종 평균 모두 단축; 일상 사진 생성, 얼굴·반려동물 캐릭터 변환은 P1 평균은 단축되지만 최종 평균은 증가. P1 미수신 2회는 P1 평균에서 제외했습니다.</li></ul></div>
+<p class="status">측정 완료 · 72 / 72회 · 3개 시나리오 × 2개 설정 × 12회</p>
+
+<p class="muted">1024x1024 · PNG · quality=low</p>
+
+<nav><a href="#statistics">평균 속도</a><a href="#averages">단계별 평균</a><a href="#runs">입력·중간·최종 비교</a><a href="#images">완료 이미지 72장</a><a href="#method">측정 기준</a></nav>
+
+</header>
+<section id="statistics"><h2>1. 평균 속도 비교</h2>
+    <p>일반은 최종 결과만, partial=1은 중간 결과 P1과 최종 결과를 나누어 비교합니다. 같은 시간축이며 짧을수록 빠릅니다.</p>
+    <p class="muted"><span class="legend-plain">회색 = 일반 최종</span> · <span class="legend-partial">옅은 파랑 = P1 / 진한 파랑 = partial 최종</span> · 점 = 개별 실행 · 선 = 최소~최대 · s = 표본 표준편차</p>
+    <div class="scroll"><svg class="stats-chart" viewBox="0 0 1100 410" role="img"
+      aria-label="일반 최종과 partial P1·최종의 평균 및 실행별 분포"><title>일반 최종 / partial P1·최종 비교</title><line x1="145.00" x2="145.00" y1="30" y2="400" class="stat-grid"/>
+      <text x="145.00" y="17" text-anchor="middle" class="stat-axis">0.0초</text><line x1="272.50" x2="272.50" y1="30" y2="400" class="stat-grid"/>
+      <text x="272.50" y="17" text-anchor="middle" class="stat-axis">12.5초</text><line x1="400.00" x2="400.00" y1="30" y2="400" class="stat-grid"/>
+      <text x="400.00" y="17" text-anchor="middle" class="stat-axis">25.0초</text><line x1="527.50" x2="527.50" y1="30" y2="400" class="stat-grid"/>
+      <text x="527.50" y="17" text-anchor="middle" class="stat-axis">37.5초</text><line x1="655.00" x2="655.00" y1="30" y2="400" class="stat-grid"/>
+      <text x="655.00" y="17" text-anchor="middle" class="stat-axis">50.0초</text><text x="4" y="43" class="stat-heading">일상 사진 생성</text><text x="4" y="72" class="stat-mode">일반
+        <tspan class="stat-axis"> · n=12</tspan></text><g data-metric="finalImageMs" data-mean-ms="22457.318607583366" data-count="12"
+          data-scenario="daily-photo" data-mode="plain">
+          <title>일상 사진 생성 일반 · 미리보기 없음 최종: 평균 22.5초, 중앙값 22.1초, 표본 표준편차 3.0초, 수신 12/12</title>
+          <text x="129" y="74" text-anchor="end" class="stat-axis">최종</text>
+          <rect x="145" y="66" width="229.06" height="7" class="stat-bar final"/>
+          <line x1="325.00" x2="422.03" y1="70" y2="70" class="stat-range"/>
+          <circle cx="358.70" cy="70" r="2" class="stat-sample">
+            <title>실행 1: 21.0초</title></circle><circle cx="417.57" cy="70" r="2" class="stat-sample">
+            <title>실행 2: 26.7초</title></circle><circle cx="366.74" cy="70" r="2" class="stat-sample">
+            <title>실행 3: 21.7초</title></circle><circle cx="339.86" cy="70" r="2" class="stat-sample">
+            <title>실행 4: 19.1초</title></circle><circle cx="397.81" cy="70" r="2" class="stat-sample">
+            <title>실행 5: 24.8초</title></circle><circle cx="387.60" cy="70" r="2" class="stat-sample">
+            <title>실행 6: 23.8초</title></circle><circle cx="366.82" cy="70" r="2" class="stat-sample">
+            <title>실행 7: 21.7초</title></circle><circle cx="422.03" cy="70" r="2" class="stat-sample">
+            <title>실행 8: 27.2초</title></circle><circle cx="342.45" cy="70" r="2" class="stat-sample">
+            <title>실행 9: 19.4초</title></circle><circle cx="390.09" cy="70" r="2" class="stat-sample">
+            <title>실행 10: 24.0초</title></circle><circle cx="325.00" cy="70" r="2" class="stat-sample">
+            <title>실행 11: 17.6초</title></circle><circle cx="374.09" cy="70" r="2" class="stat-sample">
+            <title>실행 12: 22.5초</title></circle>
+          <text x="700" y="74" class="stat-value">평균 22.5초 · 중앙값 22.1초 · s 3.0초 · 12/12회</text>
+        </g><text x="4" y="116" class="stat-mode">partial=1
+        <tspan class="stat-axis"> · n=12</tspan></text><g data-metric="partial1Ms" data-mean-ms="20454.338530272737" data-count="11"
+          data-scenario="daily-photo" data-mode="p1">
+          <title>일상 사진 생성 partial_images=1 P1: 평균 20.5초, 중앙값 21.4초, 표본 표준편차 4.1초, 수신 11/12</title>
+          <text x="129" y="110" text-anchor="end" class="stat-axis">P1</text>
+          <rect x="145" y="102" width="208.63" height="7" class="stat-bar first"/>
+          <line x1="279.74" x2="418.20" y1="106" y2="106" class="stat-range"/>
+          <circle cx="362.82" cy="106" r="2" class="stat-sample">
+            <title>실행 1: 21.4초</title></circle><circle cx="366.42" cy="106" r="2" class="stat-sample">
+            <title>실행 2: 21.7초</title></circle><circle cx="403.72" cy="106" r="2" class="stat-sample">
+            <title>실행 3: 25.4초</title></circle><circle cx="340.78" cy="106" r="2" class="stat-sample">
+            <title>실행 4: 19.2초</title></circle><circle cx="418.20" cy="106" r="2" class="stat-sample">
+            <title>실행 5: 26.8초</title></circle><circle cx="301.17" cy="106" r="2" class="stat-sample">
+            <title>실행 6: 15.3초</title></circle><circle cx="279.74" cy="106" r="2" class="stat-sample">
+            <title>실행 7: 13.2초</title></circle><circle cx="363.15" cy="106" r="2" class="stat-sample">
+            <title>실행 8: 21.4초</title></circle><circle cx="348.55" cy="106" r="2" class="stat-sample">
+            <title>실행 9: 20.0초</title></circle><circle cx="382.48" cy="106" r="2" class="stat-sample">
+            <title>실행 10: 23.3초</title></circle><circle cx="322.95" cy="106" r="2" class="stat-sample">
+            <title>실행 12: 17.4초</title></circle>
+          <text x="700" y="110" class="stat-value">평균 20.5초 · 중앙값 21.4초 · s 4.1초 · 11/12회</text>
+        </g><g data-metric="finalImageMs" data-mean-ms="28311.669593749957" data-count="12"
+          data-scenario="daily-photo" data-mode="p1">
+          <title>일상 사진 생성 partial_images=1 최종: 평균 28.3초, 중앙값 30.5초, 표본 표준편차 8.2초, 수신 12/12</title>
+          <text x="129" y="126" text-anchor="end" class="stat-axis">최종</text>
+          <rect x="145" y="118" width="288.78" height="7" class="stat-bar final"/>
+          <line x1="315.07" x2="587.56" y1="122" y2="122" class="stat-range"/>
+          <circle cx="472.16" cy="122" r="2" class="stat-sample">
+            <title>실행 1: 32.1초</title></circle><circle cx="479.69" cy="122" r="2" class="stat-sample">
+            <title>실행 2: 32.8초</title></circle><circle cx="500.29" cy="122" r="2" class="stat-sample">
+            <title>실행 3: 34.8초</title></circle><circle cx="475.29" cy="122" r="2" class="stat-sample">
+            <title>실행 4: 32.4초</title></circle><circle cx="587.56" cy="122" r="2" class="stat-sample">
+            <title>실행 5: 43.4초</title></circle><circle cx="326.30" cy="122" r="2" class="stat-sample">
+            <title>실행 6: 17.8초</title></circle><circle cx="315.07" cy="122" r="2" class="stat-sample">
+            <title>실행 7: 16.7초</title></circle><circle cx="440.83" cy="122" r="2" class="stat-sample">
+            <title>실행 8: 29.0초</title></circle><circle cx="417.39" cy="122" r="2" class="stat-sample">
+            <title>실행 9: 26.7초</title></circle><circle cx="486.93" cy="122" r="2" class="stat-sample">
+            <title>실행 10: 33.5초</title></circle><circle cx="377.07" cy="122" r="2" class="stat-sample">
+            <title>실행 11: 22.8초</title></circle><circle cx="326.77" cy="122" r="2" class="stat-sample">
+            <title>실행 12: 17.8초</title></circle>
+          <text x="700" y="126" class="stat-value">평균 28.3초 · 중앙값 30.5초 · s 8.2초 · 12/12회</text>
+        </g><text x="4" y="167" class="stat-heading">전체 사진 스타일 변환</text><text x="4" y="196" class="stat-mode">일반
+        <tspan class="stat-axis"> · n=12</tspan></text><g data-metric="finalImageMs" data-mean-ms="31866.56194791666" data-count="12"
+          data-scenario="whole-style" data-mode="plain">
+          <title>전체 사진 스타일 변환 일반 · 미리보기 없음 최종: 평균 31.9초, 중앙값 31.1초, 표본 표준편차 5.3초, 수신 12/12</title>
+          <text x="129" y="198" text-anchor="end" class="stat-axis">최종</text>
+          <rect x="145" y="190" width="325.04" height="7" class="stat-bar final"/>
+          <line x1="405.94" x2="566.39" y1="194" y2="194" class="stat-range"/>
+          <circle cx="509.26" cy="194" r="2" class="stat-sample">
+            <title>실행 1: 35.7초</title></circle><circle cx="436.97" cy="194" r="2" class="stat-sample">
+            <title>실행 2: 28.6초</title></circle><circle cx="405.94" cy="194" r="2" class="stat-sample">
+            <title>실행 3: 25.6초</title></circle><circle cx="546.21" cy="194" r="2" class="stat-sample">
+            <title>실행 4: 39.3초</title></circle><circle cx="407.63" cy="194" r="2" class="stat-sample">
+            <title>실행 5: 25.7초</title></circle><circle cx="421.00" cy="194" r="2" class="stat-sample">
+            <title>실행 6: 27.1초</title></circle><circle cx="497.84" cy="194" r="2" class="stat-sample">
+            <title>실행 7: 34.6초</title></circle><circle cx="566.39" cy="194" r="2" class="stat-sample">
+            <title>실행 8: 41.3초</title></circle><circle cx="424.20" cy="194" r="2" class="stat-sample">
+            <title>실행 9: 27.4초</title></circle><circle cx="500.84" cy="194" r="2" class="stat-sample">
+            <title>실행 10: 34.9초</title></circle><circle cx="473.44" cy="194" r="2" class="stat-sample">
+            <title>실행 11: 32.2초</title></circle><circle cx="450.74" cy="194" r="2" class="stat-sample">
+            <title>실행 12: 30.0초</title></circle>
+          <text x="700" y="198" class="stat-value">평균 31.9초 · 중앙값 31.1초 · s 5.3초 · 12/12회</text>
+        </g><text x="4" y="240" class="stat-mode">partial=1
+        <tspan class="stat-axis"> · n=12</tspan></text><g data-metric="partial1Ms" data-mean-ms="24683.70264225002" data-count="12"
+          data-scenario="whole-style" data-mode="p1">
+          <title>전체 사진 스타일 변환 partial_images=1 P1: 평균 24.7초, 중앙값 24.1초, 표본 표준편차 3.9초, 수신 12/12</title>
+          <text x="129" y="234" text-anchor="end" class="stat-axis">P1</text>
+          <rect x="145" y="226" width="251.77" height="7" class="stat-bar first"/>
+          <line x1="344.19" x2="491.18" y1="230" y2="230" class="stat-range"/>
+          <circle cx="389.36" cy="230" r="2" class="stat-sample">
+            <title>실행 1: 24.0초</title></circle><circle cx="383.32" cy="230" r="2" class="stat-sample">
+            <title>실행 2: 23.4초</title></circle><circle cx="433.22" cy="230" r="2" class="stat-sample">
+            <title>실행 3: 28.3초</title></circle><circle cx="392.21" cy="230" r="2" class="stat-sample">
+            <title>실행 4: 24.2초</title></circle><circle cx="413.58" cy="230" r="2" class="stat-sample">
+            <title>실행 5: 26.3초</title></circle><circle cx="401.46" cy="230" r="2" class="stat-sample">
+            <title>실행 6: 25.1초</title></circle><circle cx="344.19" cy="230" r="2" class="stat-sample">
+            <title>실행 7: 19.5초</title></circle><circle cx="351.00" cy="230" r="2" class="stat-sample">
+            <title>실행 8: 20.2초</title></circle><circle cx="491.18" cy="230" r="2" class="stat-sample">
+            <title>실행 9: 33.9초</title></circle><circle cx="381.49" cy="230" r="2" class="stat-sample">
+            <title>실행 10: 23.2초</title></circle><circle cx="363.83" cy="230" r="2" class="stat-sample">
+            <title>실행 11: 21.5초</title></circle><circle cx="416.44" cy="230" r="2" class="stat-sample">
+            <title>실행 12: 26.6초</title></circle>
+          <text x="700" y="234" class="stat-value">평균 24.7초 · 중앙값 24.1초 · s 3.9초 · 12/12회</text>
+        </g><g data-metric="finalImageMs" data-mean-ms="29925.835500083336" data-count="12"
+          data-scenario="whole-style" data-mode="p1">
+          <title>전체 사진 스타일 변환 partial_images=1 최종: 평균 29.9초, 중앙값 27.6초, 표본 표준편차 6.7초, 수신 12/12</title>
+          <text x="129" y="250" text-anchor="end" class="stat-axis">최종</text>
+          <rect x="145" y="242" width="305.24" height="7" class="stat-bar final"/>
+          <line x1="377.69" x2="600.03" y1="246" y2="246" class="stat-range"/>
+          <circle cx="529.27" cy="246" r="2" class="stat-sample">
+            <title>실행 1: 37.7초</title></circle><circle cx="393.83" cy="246" r="2" class="stat-sample">
+            <title>실행 2: 24.4초</title></circle><circle cx="473.97" cy="246" r="2" class="stat-sample">
+            <title>실행 3: 32.3초</title></circle><circle cx="423.87" cy="246" r="2" class="stat-sample">
+            <title>실행 4: 27.3초</title></circle><circle cx="456.73" cy="246" r="2" class="stat-sample">
+            <title>실행 5: 30.6초</title></circle><circle cx="429.28" cy="246" r="2" class="stat-sample">
+            <title>실행 6: 27.9초</title></circle><circle cx="377.69" cy="246" r="2" class="stat-sample">
+            <title>실행 7: 22.8초</title></circle><circle cx="407.97" cy="246" r="2" class="stat-sample">
+            <title>실행 8: 25.8초</title></circle><circle cx="600.03" cy="246" r="2" class="stat-sample">
+            <title>실행 9: 44.6초</title></circle><circle cx="412.42" cy="246" r="2" class="stat-sample">
+            <title>실행 10: 26.2초</title></circle><circle cx="380.83" cy="246" r="2" class="stat-sample">
+            <title>실행 11: 23.1초</title></circle><circle cx="517.04" cy="246" r="2" class="stat-sample">
+            <title>실행 12: 36.5초</title></circle>
+          <text x="700" y="250" class="stat-value">평균 29.9초 · 중앙값 27.6초 · s 6.7초 · 12/12회</text>
+        </g><text x="4" y="291" class="stat-heading">얼굴·반려동물 캐릭터 변환</text><text x="4" y="320" class="stat-mode">일반
+        <tspan class="stat-axis"> · n=12</tspan></text><g data-metric="finalImageMs" data-mean-ms="31014.188236083308" data-count="12"
+          data-scenario="face-portrait" data-mode="plain">
+          <title>얼굴·반려동물 캐릭터 변환 일반 · 미리보기 없음 최종: 평균 31.0초, 중앙값 31.6초, 표본 표준편차 3.7초, 수신 12/12</title>
+          <text x="129" y="322" text-anchor="end" class="stat-axis">최종</text>
+          <rect x="145" y="314" width="316.34" height="7" class="stat-bar final"/>
+          <line x1="397.06" x2="524.09" y1="318" y2="318" class="stat-range"/>
+          <circle cx="414.15" cy="318" r="2" class="stat-sample">
+            <title>실행 1: 26.4초</title></circle><circle cx="505.94" cy="318" r="2" class="stat-sample">
+            <title>실행 2: 35.4초</title></circle><circle cx="469.78" cy="318" r="2" class="stat-sample">
+            <title>실행 3: 31.8초</title></circle><circle cx="479.66" cy="318" r="2" class="stat-sample">
+            <title>실행 4: 32.8초</title></circle><circle cx="468.72" cy="318" r="2" class="stat-sample">
+            <title>실행 5: 31.7초</title></circle><circle cx="457.53" cy="318" r="2" class="stat-sample">
+            <title>실행 6: 30.6초</title></circle><circle cx="524.09" cy="318" r="2" class="stat-sample">
+            <title>실행 7: 37.2초</title></circle><circle cx="418.68" cy="318" r="2" class="stat-sample">
+            <title>실행 8: 26.8초</title></circle><circle cx="397.06" cy="318" r="2" class="stat-sample">
+            <title>실행 9: 24.7초</title></circle><circle cx="446.45" cy="318" r="2" class="stat-sample">
+            <title>실행 10: 29.6초</title></circle><circle cx="488.38" cy="318" r="2" class="stat-sample">
+            <title>실행 11: 33.7초</title></circle><circle cx="465.68" cy="318" r="2" class="stat-sample">
+            <title>실행 12: 31.4초</title></circle>
+          <text x="700" y="322" class="stat-value">평균 31.0초 · 중앙값 31.6초 · s 3.7초 · 12/12회</text>
+        </g><text x="4" y="364" class="stat-mode">partial=1
+        <tspan class="stat-axis"> · n=12</tspan></text><g data-metric="partial1Ms" data-mean-ms="26957.801678090884" data-count="11"
+          data-scenario="face-portrait" data-mode="p1">
+          <title>얼굴·반려동물 캐릭터 변환 partial_images=1 P1: 평균 27.0초, 중앙값 25.2초, 표본 표준편차 5.5초, 수신 11/12</title>
+          <text x="129" y="358" text-anchor="end" class="stat-axis">P1</text>
+          <rect x="145" y="350" width="274.97" height="7" class="stat-bar first"/>
+          <line x1="361.62" x2="519.44" y1="354" y2="354" class="stat-range"/>
+          <circle cx="365.30" cy="354" r="2" class="stat-sample">
+            <title>실행 1: 21.6초</title></circle><circle cx="436.79" cy="354" r="2" class="stat-sample">
+            <title>실행 3: 28.6초</title></circle><circle cx="384.29" cy="354" r="2" class="stat-sample">
+            <title>실행 4: 23.5초</title></circle><circle cx="418.74" cy="354" r="2" class="stat-sample">
+            <title>실행 5: 26.8초</title></circle><circle cx="361.62" cy="354" r="2" class="stat-sample">
+            <title>실행 6: 21.2초</title></circle><circle cx="469.25" cy="354" r="2" class="stat-sample">
+            <title>실행 7: 31.8초</title></circle><circle cx="519.44" cy="354" r="2" class="stat-sample">
+            <title>실행 8: 36.7초</title></circle><circle cx="363.39" cy="354" r="2" class="stat-sample">
+            <title>실행 9: 21.4초</title></circle><circle cx="504.34" cy="354" r="2" class="stat-sample">
+            <title>실행 10: 35.2초</title></circle><circle cx="394.52" cy="354" r="2" class="stat-sample">
+            <title>실행 11: 24.5초</title></circle><circle cx="401.98" cy="354" r="2" class="stat-sample">
+            <title>실행 12: 25.2초</title></circle>
+          <text x="700" y="358" class="stat-value">평균 27.0초 · 중앙값 25.2초 · s 5.5초 · 11/12회</text>
+        </g><g data-metric="finalImageMs" data-mean-ms="35502.60173266666" data-count="12"
+          data-scenario="face-portrait" data-mode="p1">
+          <title>얼굴·반려동물 캐릭터 변환 partial_images=1 최종: 평균 35.5초, 중앙값 33.3초, 표본 표준편차 8.1초, 수신 12/12</title>
+          <text x="129" y="374" text-anchor="end" class="stat-axis">최종</text>
+          <rect x="145" y="366" width="362.13" height="7" class="stat-bar final"/>
+          <line x1="391.88" x2="650.15" y1="370" y2="370" class="stat-range"/>
+          <circle cx="398.16" cy="370" r="2" class="stat-sample">
+            <title>실행 1: 24.8초</title></circle><circle cx="496.25" cy="370" r="2" class="stat-sample">
+            <title>실행 2: 34.4초</title></circle><circle cx="542.73" cy="370" r="2" class="stat-sample">
+            <title>실행 3: 39.0초</title></circle><circle cx="466.31" cy="370" r="2" class="stat-sample">
+            <title>실행 4: 31.5초</title></circle><circle cx="476.66" cy="370" r="2" class="stat-sample">
+            <title>실행 5: 32.5초</title></circle><circle cx="391.88" cy="370" r="2" class="stat-sample">
+            <title>실행 6: 24.2초</title></circle><circle cx="601.89" cy="370" r="2" class="stat-sample">
+            <title>실행 7: 44.8초</title></circle><circle cx="650.15" cy="370" r="2" class="stat-sample">
+            <title>실행 8: 49.5초</title></circle><circle cx="478.22" cy="370" r="2" class="stat-sample">
+            <title>실행 9: 32.7초</title></circle><circle cx="623.24" cy="370" r="2" class="stat-sample">
+            <title>실행 10: 46.9초</title></circle><circle cx="491.24" cy="370" r="2" class="stat-sample">
+            <title>실행 11: 33.9초</title></circle><circle cx="468.79" cy="370" r="2" class="stat-sample">
+            <title>실행 12: 31.7초</title></circle>
+          <text x="700" y="374" class="stat-value">평균 35.5초 · 중앙값 33.3초 · s 8.1초 · 12/12회</text>
+        </g></svg></div>
+    <p class="muted">P1 평균은 실제로 P1을 받은 요청만 계산합니다. 미수신을 0초나 최종 시간으로 대신하지 않습니다.
+      최종 평균은 완료된 전체 요청 기준입니다. 수신 횟수를 함께 확인하세요.</p>
+    <h3>일반 대비 대기시간 차이</h3><div class="scroll"><table id="relative-speed-summary">
+    <thead><tr><th>타입</th><th>P1 평균</th><th>P1 차이</th><th>partial 최종 평균</th><th>최종 차이</th><th>기준 · 일반 최종 평균</th></tr></thead>
+    <tbody><tr data-scenario="daily-photo"><th scope="row">일상 사진 생성</th>
+      <td>20.5초<small>수신 11/12회</small></td>
+      <td data-metric="partial1Percent" data-percent="-8.919052680823011">−8.9% 단축</td>
+      <td>28.3초<small>n=12</small></td>
+      <td data-metric="partialFinalPercent" data-percent="26.06878892562757">+26.1% 증가</td>
+      <td>22.5초<small>n=12</small></td></tr><tr data-scenario="whole-style"><th scope="row">전체 사진 스타일 변환</th>
+      <td>24.7초<small>수신 12/12회</small></td>
+      <td data-metric="partial1Percent" data-percent="-22.54042754096425">−22.5% 단축</td>
+      <td>29.9초<small>n=12</small></td>
+      <td data-metric="partialFinalPercent" data-percent="-6.090165770017127">−6.1% 단축</td>
+      <td>31.9초<small>n=12</small></td></tr><tr data-scenario="face-portrait"><th scope="row">얼굴·반려동물 캐릭터 변환</th>
+      <td>27.0초<small>수신 11/12회</small></td>
+      <td data-metric="partial1Percent" data-percent="-13.079131806110084">−13.1% 단축</td>
+      <td>35.5초<small>n=12</small></td>
+      <td data-metric="partialFinalPercent" data-percent="14.47212953767183">+14.5% 증가</td>
+      <td>31.0초<small>n=12</small></td></tr></tbody></table></div>
+    <p class="muted">차이(%) = (partial 단계 평균 − 같은 타입 일반 최종 평균) ÷ 일반 최종 평균 × 100.
+      음수는 대기시간 단축, 양수는 증가입니다. P1 미수신은 P1 평균·비율에서 제외합니다.</p></section>
+<section id="averages"><h2>2. 단계별 평균</h2>
+    <p>설정 이름을 누르면 아래에서 해당 실행의 입력·중간·최종 이미지를 확인할 수 있습니다.</p>
+    <div class="scroll"><table id="stage-averages"><thead><tr><th>시나리오</th><th>설정</th>
+      <th>P1</th><th>최종 이미지</th><th>첫 결과<br>일반 대비</th>
+      <th>최종<br>일반 대비</th><th>응답 quality</th></tr></thead><tbody><tr data-scenario="daily-photo" data-mode="plain" data-samples="12" data-target="12">
+        <th scope="rowgroup" rowspan="2" class="scenario-name">일상 사진 생성</th>
+        <th scope="row"><button class="text-button" data-explore-scenario="daily-photo" data-explore-mode="plain">일반</button>
+          <small>n=12/12</small></th>
+        <td><strong>—</strong><small>요청 안 함</small></td><td><strong>22.5초</strong><small>추가 22.5초 · 12/12회</small></td><td>기준</td>
+        <td>기준</td>
+        <td class="quality">low 12</td></tr><tr data-scenario="daily-photo" data-mode="p1" data-samples="12" data-target="12">
+        
+        <th scope="row"><button class="text-button" data-explore-scenario="daily-photo" data-explore-mode="p1">partial=1</button>
+          <small>n=12/12</small></th>
+        <td><strong>20.5초</strong><small>추가 20.5초 · 11/12회</small></td><td><strong>28.3초</strong><small>추가 9.6초 · 12/12회</small></td><td>1.8초 단축</td>
+        <td>5.9초 증가</td>
+        <td class="quality">low 12</td></tr><tr data-scenario="whole-style" data-mode="plain" data-samples="12" data-target="12">
+        <th scope="rowgroup" rowspan="2" class="scenario-name">전체 사진 스타일 변환</th>
+        <th scope="row"><button class="text-button" data-explore-scenario="whole-style" data-explore-mode="plain">일반</button>
+          <small>n=12/12</small></th>
+        <td><strong>—</strong><small>요청 안 함</small></td><td><strong>31.9초</strong><small>추가 31.9초 · 12/12회</small></td><td>기준</td>
+        <td>기준</td>
+        <td class="quality">low 12</td></tr><tr data-scenario="whole-style" data-mode="p1" data-samples="12" data-target="12">
+        
+        <th scope="row"><button class="text-button" data-explore-scenario="whole-style" data-explore-mode="p1">partial=1</button>
+          <small>n=12/12</small></th>
+        <td><strong>24.7초</strong><small>추가 24.7초 · 12/12회</small></td><td><strong>29.9초</strong><small>추가 5.2초 · 12/12회</small></td><td>7.2초 단축</td>
+        <td>1.9초 단축</td>
+        <td class="quality">low 12</td></tr><tr data-scenario="face-portrait" data-mode="plain" data-samples="12" data-target="12">
+        <th scope="rowgroup" rowspan="2" class="scenario-name">얼굴·반려동물 캐릭터 변환</th>
+        <th scope="row"><button class="text-button" data-explore-scenario="face-portrait" data-explore-mode="plain">일반</button>
+          <small>n=12/12</small></th>
+        <td><strong>—</strong><small>요청 안 함</small></td><td><strong>31.0초</strong><small>추가 31.0초 · 12/12회</small></td><td>기준</td>
+        <td>기준</td>
+        <td class="quality">low 12</td></tr><tr data-scenario="face-portrait" data-mode="p1" data-samples="12" data-target="12">
+        
+        <th scope="row"><button class="text-button" data-explore-scenario="face-portrait" data-explore-mode="p1">partial=1</button>
+          <small>n=12/12</small></th>
+        <td><strong>27.0초</strong><small>추가 27.0초 · 11/12회</small></td><td><strong>35.5초</strong><small>추가 10.8초 · 12/12회</small></td><td>3.4초 단축</td>
+        <td>4.5초 증가</td>
+        <td class="quality">low 12</td></tr></tbody></table></div>
+    <p class="muted">굵은 값은 요청 후 누적 시간, “추가”는 이전에 실제로 받은 이미지 이후의 평균 대기입니다.
+      추가 대기는 실행별 차이를 먼저 구한 뒤 평균했습니다. 일부 partial이 생략되면 표본 수가 달라지므로 단계별 평균 추가 시간을 직접 더할 수 없습니다.
+      “미수신”은 0초가 아니라 해당 단계가 오지 않았다는 뜻입니다.</p>
+  </section>
+<section id="runs" class="all-runs"><h2 id="images">3. 개별 실행 · 입력 / 중간 / 최종</h2>
+<p class="muted">타입별로 일반과 partial을 나누어 모든 완료 회차를 펼쳐 표시합니다. 일반은 최종만, partial=1은 P1과 최종을 나란히 표시합니다.</p>
+<p id="error" role="alert" hidden></p>
+<div id="all-run-results"></div></section>
+<section id="method"><h2>측정 기준</h2>
+<ul class="muted">
+<li>누적 시간 = 요청 시작부터 해당 이미지 이벤트 전체를 받은 시각. 최종 시간 = 최종 이미지 수신 완료입니다. 일반 요청은 JSON 전체 수신을 기준으로 합니다.</li>
+<li>인증 토큰 조회와 요청 본문 준비는 측정 전에 수행했습니다. 업로드·서비스 대기·이미지 생성·응답 전송은 수신 시간에 함께 포함되어 있습니다. 서버 내부 순수 추론 시간이나 업로드 시간만 분리할 수 없습니다.</li>
+<li>두 편집 타입의 모든 회차에 동일한 합성 입력 사진을 사용했습니다. 실패·재시도 대기는 성공 요청 통계에서 제외했습니다.</li>
+<li>모든 출력 요청은 <code>quality=low</code>로 고정하고 서비스가 반환한 최종 quality도 low인 경우만 성공 표본에 포함했습니다. 얼굴 변환은 마스크 없이 지시했으므로 배경 픽셀 보존을 보장하지 않습니다.</li>
+<li>일반은 비스트리밍이며 <code>stream=true, partial_images=0</code>은 별도 비교하지 않았습니다. 요청 간격은 65초 이상으로 두고 순서를 순환했습니다. partial=1 편집 1회는 지원 확인 후 같은 샘플을 본 실험에 포함했습니다.</li>
+<li>설정당 12회인 탐색 실험입니다. 부하·네트워크·결과 내용 차이가 있으며, p95·통계적 유의성·운영 SLA를 주장하지 않습니다. 중간 이미지는 확정 결과가 아니므로 “미리보기”로 표시하고 최종으로 교체해야 합니다.</li>
+</ul>
+
+<details><summary>시나리오별 작업 설명</summary><p><strong>일상 사진 생성</strong><br>여성과 골든리트리버가 거실 소파에 함께 앉아 있는 정사각형의 자연스러운 일상 사진을 생성합니다.</p><p><strong>전체 사진 스타일 변환</strong><br>같은 입력 사진의 인물·반려동물·구도와 주요 사물을 유지하면서 사진 전체를 수채화풍으로 변환합니다.</p><p><strong>얼굴·반려동물 캐릭터 변환</strong><br>입력 사진에서 여성과 반려견의 얼굴만 3D 캐릭터로 변환하고 신체·의상·배경·구도는 최대한 유지합니다.</p></details>
+<p class="muted">모든 입력·결과 이미지는 AI로 생성된 합성 이미지입니다. 공개본에서는 회사·제품명과 내부 식별 메타데이터를 제외했습니다. 측정값과 이미지 픽셀은 변경하지 않았으며, 표시된 용량은 원본 수신량입니다. 특정 제공자·배포 환경은 공개하지 않으며, 다른 환경의 성능을 보장하지 않습니다. · <a href="results.json">공개 측정값</a></p>
+</section>
+<template id="timeline-daily-photo-plain"><div class="scroll"><div class="timeline"><div class="timeline-axis"><div></div><div class="axis-track"><span style="left:0%">0.0초</span><span style="left:25%">12.5초</span><span style="left:50%">25.0초</span><span style="left:75%">37.5초</span><span style="left:100%">50.0초</span></div></div><div class="timeline-row" data-run-id="daily-photo-plain-r1"
+      style="min-height:64px">
+      <div class="timeline-name">실행 1</div><div class="time-track">
+        <span class="header-wait" style="width:37.39%"></span>
+        <span class="time-marker final" data-time-ms="20951"
+        style="left:41.90%" title="최종 21.0초"></span>
+        <span class="time-label center" style="left:41.90%;top:27px">
+          최종 <b>21.0초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r2"
+      style="min-height:64px">
+      <div class="timeline-name">실행 2</div><div class="time-track">
+        <span class="header-wait" style="width:35.92%"></span>
+        <span class="time-marker final" data-time-ms="26723"
+        style="left:53.45%" title="최종 26.7초"></span>
+        <span class="time-label center" style="left:53.45%;top:27px">
+          최종 <b>26.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r3"
+      style="min-height:64px">
+      <div class="timeline-name">실행 3</div><div class="time-track">
+        <span class="header-wait" style="width:30.25%"></span>
+        <span class="time-marker final" data-time-ms="21739"
+        style="left:43.48%" title="최종 21.7초"></span>
+        <span class="time-label center" style="left:43.48%;top:27px">
+          최종 <b>21.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r4"
+      style="min-height:64px">
+      <div class="timeline-name">실행 4</div><div class="time-track">
+        <span class="header-wait" style="width:32.17%"></span>
+        <span class="time-marker final" data-time-ms="19104"
+        style="left:38.21%" title="최종 19.1초"></span>
+        <span class="time-label center" style="left:38.21%;top:27px">
+          최종 <b>19.1초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r5"
+      style="min-height:64px">
+      <div class="timeline-name">실행 5</div><div class="time-track">
+        <span class="header-wait" style="width:31.67%"></span>
+        <span class="time-marker final" data-time-ms="24786"
+        style="left:49.57%" title="최종 24.8초"></span>
+        <span class="time-label center" style="left:49.57%;top:27px">
+          최종 <b>24.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r6"
+      style="min-height:64px">
+      <div class="timeline-name">실행 6</div><div class="time-track">
+        <span class="header-wait" style="width:33.33%"></span>
+        <span class="time-marker final" data-time-ms="23784"
+        style="left:47.57%" title="최종 23.8초"></span>
+        <span class="time-label center" style="left:47.57%;top:27px">
+          최종 <b>23.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r7"
+      style="min-height:64px">
+      <div class="timeline-name">실행 7</div><div class="time-track">
+        <span class="header-wait" style="width:32.13%"></span>
+        <span class="time-marker final" data-time-ms="21747"
+        style="left:43.49%" title="최종 21.7초"></span>
+        <span class="time-label center" style="left:43.49%;top:27px">
+          최종 <b>21.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r8"
+      style="min-height:64px">
+      <div class="timeline-name">실행 8</div><div class="time-track">
+        <span class="header-wait" style="width:33.37%"></span>
+        <span class="time-marker final" data-time-ms="27160"
+        style="left:54.32%" title="최종 27.2초"></span>
+        <span class="time-label center" style="left:54.32%;top:27px">
+          최종 <b>27.2초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r9"
+      style="min-height:64px">
+      <div class="timeline-name">실행 9</div><div class="time-track">
+        <span class="header-wait" style="width:32.90%"></span>
+        <span class="time-marker final" data-time-ms="19358"
+        style="left:38.72%" title="최종 19.4초"></span>
+        <span class="time-label center" style="left:38.72%;top:27px">
+          최종 <b>19.4초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r10"
+      style="min-height:64px">
+      <div class="timeline-name">실행 10</div><div class="time-track">
+        <span class="header-wait" style="width:31.15%"></span>
+        <span class="time-marker final" data-time-ms="24028"
+        style="left:48.06%" title="최종 24.0초"></span>
+        <span class="time-label center" style="left:48.06%;top:27px">
+          최종 <b>24.0초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r11"
+      style="min-height:64px">
+      <div class="timeline-name">실행 11</div><div class="time-track">
+        <span class="header-wait" style="width:30.67%"></span>
+        <span class="time-marker final" data-time-ms="17647"
+        style="left:35.29%" title="최종 17.6초"></span>
+        <span class="time-label center" style="left:35.29%;top:27px">
+          최종 <b>17.6초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-plain-r12"
+      style="min-height:64px">
+      <div class="timeline-name">실행 12</div><div class="time-track">
+        <span class="header-wait" style="width:35.70%"></span>
+        <span class="time-marker final" data-time-ms="22460"
+        style="left:44.92%" title="최종 22.5초"></span>
+        <span class="time-label center" style="left:44.92%;top:27px">
+          최종 <b>22.5초</b></span>
+      </div></div><div class="timeline-row average"
+      style="min-height:64px">
+      <div class="timeline-name">평균 · n=12</div><div class="time-track">
+        <span class="header-wait" style="width:33.05%"></span>
+        <span class="time-marker final" data-time-ms="22457"
+        style="left:44.91%" title="최종 22.5초"></span>
+        <span class="time-label center" style="left:44.91%;top:27px">
+          최종 <b>22.5초</b></span>
+      </div></div></div></div></template><template id="timeline-daily-photo-p1"><div class="scroll"><div class="timeline"><div class="timeline-axis"><div></div><div class="axis-track"><span style="left:0%">0.0초</span><span style="left:25%">12.5초</span><span style="left:50%">25.0초</span><span style="left:75%">37.5초</span><span style="left:100%">50.0초</span></div></div><div class="timeline-row" data-run-id="daily-photo-p1-r1"
+      style="min-height:64px">
+      <div class="timeline-name">실행 1</div><div class="time-track">
+        <span class="header-wait" style="width:27.50%"></span>
+        <span class="preview-band" style="left:42.71%;width:21.44%"></span><span class="time-marker partial" data-time-ms="21354"
+        style="left:42.71%" title="P1 21.4초"></span>
+        <span class="time-label center" style="left:42.71%;top:27px">
+          P1 <b>21.4초</b></span><span class="time-marker final" data-time-ms="32074"
+        style="left:64.15%" title="최종 32.1초"></span>
+        <span class="time-label center" style="left:64.15%;top:27px">
+          최종 <b>32.1초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r2"
+      style="min-height:64px">
+      <div class="timeline-name">실행 2</div><div class="time-track">
+        <span class="header-wait" style="width:28.26%"></span>
+        <span class="preview-band" style="left:43.41%;width:22.21%"></span><span class="time-marker partial" data-time-ms="21707"
+        style="left:43.41%" title="P1 21.7초"></span>
+        <span class="time-label center" style="left:43.41%;top:27px">
+          P1 <b>21.7초</b></span><span class="time-marker final" data-time-ms="32813"
+        style="left:65.63%" title="최종 32.8초"></span>
+        <span class="time-label center" style="left:65.63%;top:27px">
+          최종 <b>32.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r3"
+      style="min-height:64px">
+      <div class="timeline-name">실행 3</div><div class="time-track">
+        <span class="header-wait" style="width:26.21%"></span>
+        <span class="preview-band" style="left:50.73%;width:18.94%"></span><span class="time-marker partial" data-time-ms="25364"
+        style="left:50.73%" title="P1 25.4초"></span>
+        <span class="time-label center" style="left:50.73%;top:27px">
+          P1 <b>25.4초</b></span><span class="time-marker final" data-time-ms="34832"
+        style="left:69.66%" title="최종 34.8초"></span>
+        <span class="time-label center" style="left:69.66%;top:27px">
+          최종 <b>34.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r4"
+      style="min-height:64px">
+      <div class="timeline-name">실행 4</div><div class="time-track">
+        <span class="header-wait" style="width:27.60%"></span>
+        <span class="preview-band" style="left:38.39%;width:26.37%"></span><span class="time-marker partial" data-time-ms="19194"
+        style="left:38.39%" title="P1 19.2초"></span>
+        <span class="time-label center" style="left:38.39%;top:27px">
+          P1 <b>19.2초</b></span><span class="time-marker final" data-time-ms="32381"
+        style="left:64.76%" title="최종 32.4초"></span>
+        <span class="time-label center" style="left:64.76%;top:27px">
+          최종 <b>32.4초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r5"
+      style="min-height:64px">
+      <div class="timeline-name">실행 5</div><div class="time-track">
+        <span class="header-wait" style="width:22.38%"></span>
+        <span class="preview-band" style="left:53.57%;width:33.21%"></span><span class="time-marker partial" data-time-ms="26785"
+        style="left:53.57%" title="P1 26.8초"></span>
+        <span class="time-label center" style="left:53.57%;top:27px">
+          P1 <b>26.8초</b></span><span class="time-marker final" data-time-ms="43388"
+        style="left:86.78%" title="최종 43.4초"></span>
+        <span class="time-label center" style="left:86.78%;top:27px">
+          최종 <b>43.4초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r6"
+      style="min-height:80px">
+      <div class="timeline-name">실행 6</div><div class="time-track">
+        <span class="header-wait" style="width:23.40%"></span>
+        <span class="preview-band" style="left:30.62%;width:4.93%"></span><span class="time-marker partial" data-time-ms="15311"
+        style="left:30.62%" title="P1 15.3초"></span>
+        <span class="time-label center" style="left:30.62%;top:27px">
+          P1 <b>15.3초</b></span><span class="time-marker final" data-time-ms="17774"
+        style="left:35.55%" title="최종 17.8초"></span>
+        <span class="time-label center" style="left:35.55%;top:46px">
+          최종 <b>17.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r7"
+      style="min-height:80px">
+      <div class="timeline-name">실행 7</div><div class="time-track">
+        <span class="header-wait" style="width:21.22%"></span>
+        <span class="preview-band" style="left:26.42%;width:6.93%"></span><span class="time-marker partial" data-time-ms="13210"
+        style="left:26.42%" title="P1 13.2초"></span>
+        <span class="time-label center" style="left:26.42%;top:27px">
+          P1 <b>13.2초</b></span><span class="time-marker final" data-time-ms="16673"
+        style="left:33.35%" title="최종 16.7초"></span>
+        <span class="time-label center" style="left:33.35%;top:46px">
+          최종 <b>16.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r8"
+      style="min-height:64px">
+      <div class="timeline-name">실행 8</div><div class="time-track">
+        <span class="header-wait" style="width:25.65%"></span>
+        <span class="preview-band" style="left:42.77%;width:15.23%"></span><span class="time-marker partial" data-time-ms="21387"
+        style="left:42.77%" title="P1 21.4초"></span>
+        <span class="time-label center" style="left:42.77%;top:27px">
+          P1 <b>21.4초</b></span><span class="time-marker final" data-time-ms="29003"
+        style="left:58.01%" title="최종 29.0초"></span>
+        <span class="time-label center" style="left:58.01%;top:27px">
+          최종 <b>29.0초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r9"
+      style="min-height:80px">
+      <div class="timeline-name">실행 9</div><div class="time-track">
+        <span class="header-wait" style="width:25.82%"></span>
+        <span class="preview-band" style="left:39.91%;width:13.50%"></span><span class="time-marker partial" data-time-ms="19956"
+        style="left:39.91%" title="P1 20.0초"></span>
+        <span class="time-label center" style="left:39.91%;top:27px">
+          P1 <b>20.0초</b></span><span class="time-marker final" data-time-ms="26704"
+        style="left:53.41%" title="최종 26.7초"></span>
+        <span class="time-label center" style="left:53.41%;top:46px">
+          최종 <b>26.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r10"
+      style="min-height:64px">
+      <div class="timeline-name">실행 10</div><div class="time-track">
+        <span class="header-wait" style="width:23.52%"></span>
+        <span class="preview-band" style="left:46.56%;width:20.48%"></span><span class="time-marker partial" data-time-ms="23282"
+        style="left:46.56%" title="P1 23.3초"></span>
+        <span class="time-label center" style="left:46.56%;top:27px">
+          P1 <b>23.3초</b></span><span class="time-marker final" data-time-ms="33523"
+        style="left:67.05%" title="최종 33.5초"></span>
+        <span class="time-label center" style="left:67.05%;top:27px">
+          최종 <b>33.5초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r11"
+      style="min-height:64px">
+      <div class="timeline-name">실행 11</div><div class="time-track">
+        <span class="header-wait" style="width:39.16%"></span>
+        <span class="time-marker final" data-time-ms="22752"
+        style="left:45.50%" title="최종 22.8초"></span>
+        <span class="time-label center" style="left:45.50%;top:27px">
+          최종 <b>22.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="daily-photo-p1-r12"
+      style="min-height:80px">
+      <div class="timeline-name">실행 12</div><div class="time-track">
+        <span class="header-wait" style="width:27.59%"></span>
+        <span class="preview-band" style="left:34.89%;width:0.75%"></span><span class="time-marker partial" data-time-ms="17446"
+        style="left:34.89%" title="P1 17.4초"></span>
+        <span class="time-label center" style="left:34.89%;top:27px">
+          P1 <b>17.4초</b></span><span class="time-marker final" data-time-ms="17821"
+        style="left:35.64%" title="최종 17.8초"></span>
+        <span class="time-label center" style="left:35.64%;top:46px">
+          최종 <b>17.8초</b></span>
+      </div></div><div class="timeline-row average"
+      style="min-height:64px">
+      <div class="timeline-name">평균 · n=12</div><div class="time-track">
+        <span class="header-wait" style="width:26.53%"></span>
+        <span class="preview-band" style="left:40.91%;width:15.71%"></span><span class="time-marker partial" data-time-ms="20454"
+        style="left:40.91%" title="P1 20.5초"></span>
+        <span class="time-label center" style="left:40.91%;top:27px">
+          P1 <b>20.5초</b></span><span class="time-marker final" data-time-ms="28312"
+        style="left:56.62%" title="최종 28.3초"></span>
+        <span class="time-label center" style="left:56.62%;top:27px">
+          최종 <b>28.3초</b></span>
+      </div></div></div></div></template><template id="timeline-whole-style-plain"><div class="scroll"><div class="timeline"><div class="timeline-axis"><div></div><div class="axis-track"><span style="left:0%">0.0초</span><span style="left:25%">12.5초</span><span style="left:50%">25.0초</span><span style="left:75%">37.5초</span><span style="left:100%">50.0초</span></div></div><div class="timeline-row" data-run-id="whole-style-plain-r1"
+      style="min-height:64px">
+      <div class="timeline-name">실행 1</div><div class="time-track">
+        <span class="header-wait" style="width:51.12%"></span>
+        <span class="time-marker final" data-time-ms="35711"
+        style="left:71.42%" title="최종 35.7초"></span>
+        <span class="time-label center" style="left:71.42%;top:27px">
+          최종 <b>35.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r2"
+      style="min-height:64px">
+      <div class="timeline-name">실행 2</div><div class="time-track">
+        <span class="header-wait" style="width:45.72%"></span>
+        <span class="time-marker final" data-time-ms="28625"
+        style="left:57.25%" title="최종 28.6초"></span>
+        <span class="time-label center" style="left:57.25%;top:27px">
+          최종 <b>28.6초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r3"
+      style="min-height:64px">
+      <div class="timeline-name">실행 3</div><div class="time-track">
+        <span class="header-wait" style="width:45.78%"></span>
+        <span class="time-marker final" data-time-ms="25582"
+        style="left:51.16%" title="최종 25.6초"></span>
+        <span class="time-label center" style="left:51.16%;top:27px">
+          최종 <b>25.6초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r4"
+      style="min-height:64px">
+      <div class="timeline-name">실행 4</div><div class="time-track">
+        <span class="header-wait" style="width:49.62%"></span>
+        <span class="time-marker final" data-time-ms="39334"
+        style="left:78.67%" title="최종 39.3초"></span>
+        <span class="time-label center" style="left:78.67%;top:27px">
+          최종 <b>39.3초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r5"
+      style="min-height:64px">
+      <div class="timeline-name">실행 5</div><div class="time-track">
+        <span class="header-wait" style="width:46.28%"></span>
+        <span class="time-marker final" data-time-ms="25748"
+        style="left:51.50%" title="최종 25.7초"></span>
+        <span class="time-label center" style="left:51.50%;top:27px">
+          최종 <b>25.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r6"
+      style="min-height:64px">
+      <div class="timeline-name">실행 6</div><div class="time-track">
+        <span class="header-wait" style="width:48.64%"></span>
+        <span class="time-marker final" data-time-ms="27059"
+        style="left:54.12%" title="최종 27.1초"></span>
+        <span class="time-label center" style="left:54.12%;top:27px">
+          최종 <b>27.1초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r7"
+      style="min-height:64px">
+      <div class="timeline-name">실행 7</div><div class="time-track">
+        <span class="header-wait" style="width:44.81%"></span>
+        <span class="time-marker final" data-time-ms="34592"
+        style="left:69.18%" title="최종 34.6초"></span>
+        <span class="time-label center" style="left:69.18%;top:27px">
+          최종 <b>34.6초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r8"
+      style="min-height:64px">
+      <div class="timeline-name">실행 8</div><div class="time-track">
+        <span class="header-wait" style="width:60.59%"></span>
+        <span class="time-marker final" data-time-ms="41313"
+        style="left:82.63%" title="최종 41.3초"></span>
+        <span class="time-label center" style="left:82.63%;top:27px">
+          최종 <b>41.3초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r9"
+      style="min-height:64px">
+      <div class="timeline-name">실행 9</div><div class="time-track">
+        <span class="header-wait" style="width:49.31%"></span>
+        <span class="time-marker final" data-time-ms="27373"
+        style="left:54.75%" title="최종 27.4초"></span>
+        <span class="time-label center" style="left:54.75%;top:27px">
+          최종 <b>27.4초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r10"
+      style="min-height:64px">
+      <div class="timeline-name">실행 10</div><div class="time-track">
+        <span class="header-wait" style="width:50.32%"></span>
+        <span class="time-marker final" data-time-ms="34886"
+        style="left:69.77%" title="최종 34.9초"></span>
+        <span class="time-label center" style="left:69.77%;top:27px">
+          최종 <b>34.9초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r11"
+      style="min-height:64px">
+      <div class="timeline-name">실행 11</div><div class="time-track">
+        <span class="header-wait" style="width:49.55%"></span>
+        <span class="time-marker final" data-time-ms="32200"
+        style="left:64.40%" title="최종 32.2초"></span>
+        <span class="time-label center" style="left:64.40%;top:27px">
+          최종 <b>32.2초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-plain-r12"
+      style="min-height:64px">
+      <div class="timeline-name">실행 12</div><div class="time-track">
+        <span class="header-wait" style="width:43.83%"></span>
+        <span class="time-marker final" data-time-ms="29975"
+        style="left:59.95%" title="최종 30.0초"></span>
+        <span class="time-label center" style="left:59.95%;top:27px">
+          최종 <b>30.0초</b></span>
+      </div></div><div class="timeline-row average"
+      style="min-height:64px">
+      <div class="timeline-name">평균 · n=12</div><div class="time-track">
+        <span class="header-wait" style="width:48.80%"></span>
+        <span class="time-marker final" data-time-ms="31867"
+        style="left:63.73%" title="최종 31.9초"></span>
+        <span class="time-label center" style="left:63.73%;top:27px">
+          최종 <b>31.9초</b></span>
+      </div></div></div></div></template><template id="timeline-whole-style-p1"><div class="scroll"><div class="timeline"><div class="timeline-axis"><div></div><div class="axis-track"><span style="left:0%">0.0초</span><span style="left:25%">12.5초</span><span style="left:50%">25.0초</span><span style="left:75%">37.5초</span><span style="left:100%">50.0초</span></div></div><div class="timeline-row" data-run-id="whole-style-p1-r1"
+      style="min-height:64px">
+      <div class="timeline-name">실행 1</div><div class="time-track">
+        <span class="header-wait" style="width:32.93%"></span>
+        <span class="preview-band" style="left:47.91%;width:27.43%"></span><span class="time-marker partial" data-time-ms="23957"
+        style="left:47.91%" title="P1 24.0초"></span>
+        <span class="time-label center" style="left:47.91%;top:27px">
+          P1 <b>24.0초</b></span><span class="time-marker final" data-time-ms="37674"
+        style="left:75.35%" title="최종 37.7초"></span>
+        <span class="time-label center" style="left:75.35%;top:27px">
+          최종 <b>37.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r2"
+      style="min-height:80px">
+      <div class="timeline-name">실행 2</div><div class="time-track">
+        <span class="header-wait" style="width:41.09%"></span>
+        <span class="preview-band" style="left:46.73%;width:2.06%"></span><span class="time-marker partial" data-time-ms="23365"
+        style="left:46.73%" title="P1 23.4초"></span>
+        <span class="time-label center" style="left:46.73%;top:27px">
+          P1 <b>23.4초</b></span><span class="time-marker final" data-time-ms="24395"
+        style="left:48.79%" title="최종 24.4초"></span>
+        <span class="time-label center" style="left:48.79%;top:46px">
+          최종 <b>24.4초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r3"
+      style="min-height:80px">
+      <div class="timeline-name">실행 3</div><div class="time-track">
+        <span class="header-wait" style="width:47.01%"></span>
+        <span class="preview-band" style="left:56.51%;width:7.99%"></span><span class="time-marker partial" data-time-ms="28257"
+        style="left:56.51%" title="P1 28.3초"></span>
+        <span class="time-label center" style="left:56.51%;top:27px">
+          P1 <b>28.3초</b></span><span class="time-marker final" data-time-ms="32252"
+        style="left:64.50%" title="최종 32.3초"></span>
+        <span class="time-label center" style="left:64.50%;top:46px">
+          최종 <b>32.3초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r4"
+      style="min-height:80px">
+      <div class="timeline-name">실행 4</div><div class="time-track">
+        <span class="header-wait" style="width:41.51%"></span>
+        <span class="preview-band" style="left:48.47%;width:6.21%"></span><span class="time-marker partial" data-time-ms="24237"
+        style="left:48.47%" title="P1 24.2초"></span>
+        <span class="time-label center" style="left:48.47%;top:27px">
+          P1 <b>24.2초</b></span><span class="time-marker final" data-time-ms="27340"
+        style="left:54.68%" title="최종 27.3초"></span>
+        <span class="time-label center" style="left:54.68%;top:46px">
+          최종 <b>27.3초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r5"
+      style="min-height:80px">
+      <div class="timeline-name">실행 5</div><div class="time-track">
+        <span class="header-wait" style="width:46.15%"></span>
+        <span class="preview-band" style="left:52.66%;width:8.46%"></span><span class="time-marker partial" data-time-ms="26331"
+        style="left:52.66%" title="P1 26.3초"></span>
+        <span class="time-label center" style="left:52.66%;top:27px">
+          P1 <b>26.3초</b></span><span class="time-marker final" data-time-ms="30561"
+        style="left:61.12%" title="최종 30.6초"></span>
+        <span class="time-label center" style="left:61.12%;top:46px">
+          최종 <b>30.6초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r6"
+      style="min-height:80px">
+      <div class="timeline-name">실행 6</div><div class="time-track">
+        <span class="header-wait" style="width:44.34%"></span>
+        <span class="preview-band" style="left:50.29%;width:5.45%"></span><span class="time-marker partial" data-time-ms="25144"
+        style="left:50.29%" title="P1 25.1초"></span>
+        <span class="time-label center" style="left:50.29%;top:27px">
+          P1 <b>25.1초</b></span><span class="time-marker final" data-time-ms="27871"
+        style="left:55.74%" title="최종 27.9초"></span>
+        <span class="time-label center" style="left:55.74%;top:46px">
+          최종 <b>27.9초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r7"
+      style="min-height:80px">
+      <div class="timeline-name">실행 7</div><div class="time-track">
+        <span class="header-wait" style="width:33.73%"></span>
+        <span class="preview-band" style="left:39.06%;width:6.57%"></span><span class="time-marker partial" data-time-ms="19528"
+        style="left:39.06%" title="P1 19.5초"></span>
+        <span class="time-label center" style="left:39.06%;top:27px">
+          P1 <b>19.5초</b></span><span class="time-marker final" data-time-ms="22813"
+        style="left:45.63%" title="최종 22.8초"></span>
+        <span class="time-label center" style="left:45.63%;top:46px">
+          최종 <b>22.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r8"
+      style="min-height:80px">
+      <div class="timeline-name">실행 8</div><div class="time-track">
+        <span class="header-wait" style="width:34.02%"></span>
+        <span class="preview-band" style="left:40.39%;width:11.17%"></span><span class="time-marker partial" data-time-ms="20196"
+        style="left:40.39%" title="P1 20.2초"></span>
+        <span class="time-label center" style="left:40.39%;top:27px">
+          P1 <b>20.2초</b></span><span class="time-marker final" data-time-ms="25781"
+        style="left:51.56%" title="최종 25.8초"></span>
+        <span class="time-label center" style="left:51.56%;top:46px">
+          최종 <b>25.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r9"
+      style="min-height:64px">
+      <div class="timeline-name">실행 9</div><div class="time-track">
+        <span class="header-wait" style="width:41.58%"></span>
+        <span class="preview-band" style="left:67.88%;width:21.34%"></span><span class="time-marker partial" data-time-ms="33939"
+        style="left:67.88%" title="P1 33.9초"></span>
+        <span class="time-label center" style="left:67.88%;top:27px">
+          P1 <b>33.9초</b></span><span class="time-marker final" data-time-ms="44610"
+        style="left:89.22%" title="최종 44.6초"></span>
+        <span class="time-label center" style="left:89.22%;top:27px">
+          최종 <b>44.6초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r10"
+      style="min-height:80px">
+      <div class="timeline-name">실행 10</div><div class="time-track">
+        <span class="header-wait" style="width:36.42%"></span>
+        <span class="preview-band" style="left:46.37%;width:6.06%"></span><span class="time-marker partial" data-time-ms="23186"
+        style="left:46.37%" title="P1 23.2초"></span>
+        <span class="time-label center" style="left:46.37%;top:27px">
+          P1 <b>23.2초</b></span><span class="time-marker final" data-time-ms="26218"
+        style="left:52.44%" title="최종 26.2초"></span>
+        <span class="time-label center" style="left:52.44%;top:46px">
+          최종 <b>26.2초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r11"
+      style="min-height:80px">
+      <div class="timeline-name">실행 11</div><div class="time-track">
+        <span class="header-wait" style="width:36.29%"></span>
+        <span class="preview-band" style="left:42.91%;width:3.33%"></span><span class="time-marker partial" data-time-ms="21454"
+        style="left:42.91%" title="P1 21.5초"></span>
+        <span class="time-label center" style="left:42.91%;top:27px">
+          P1 <b>21.5초</b></span><span class="time-marker final" data-time-ms="23121"
+        style="left:46.24%" title="최종 23.1초"></span>
+        <span class="time-label center" style="left:46.24%;top:46px">
+          최종 <b>23.1초</b></span>
+      </div></div><div class="timeline-row" data-run-id="whole-style-p1-r12"
+      style="min-height:64px">
+      <div class="timeline-name">실행 12</div><div class="time-track">
+        <span class="header-wait" style="width:36.79%"></span>
+        <span class="preview-band" style="left:53.22%;width:19.73%"></span><span class="time-marker partial" data-time-ms="26612"
+        style="left:53.22%" title="P1 26.6초"></span>
+        <span class="time-label center" style="left:53.22%;top:27px">
+          P1 <b>26.6초</b></span><span class="time-marker final" data-time-ms="36474"
+        style="left:72.95%" title="최종 36.5초"></span>
+        <span class="time-label center" style="left:72.95%;top:27px">
+          최종 <b>36.5초</b></span>
+      </div></div><div class="timeline-row average"
+      style="min-height:80px">
+      <div class="timeline-name">평균 · n=12</div><div class="time-track">
+        <span class="header-wait" style="width:39.32%"></span>
+        <span class="preview-band" style="left:49.37%;width:10.48%"></span><span class="time-marker partial" data-time-ms="24684"
+        style="left:49.37%" title="P1 24.7초"></span>
+        <span class="time-label center" style="left:49.37%;top:27px">
+          P1 <b>24.7초</b></span><span class="time-marker final" data-time-ms="29926"
+        style="left:59.85%" title="최종 29.9초"></span>
+        <span class="time-label center" style="left:59.85%;top:46px">
+          최종 <b>29.9초</b></span>
+      </div></div></div></div></template><template id="timeline-face-portrait-plain"><div class="scroll"><div class="timeline"><div class="timeline-axis"><div></div><div class="axis-track"><span style="left:0%">0.0초</span><span style="left:25%">12.5초</span><span style="left:50%">25.0초</span><span style="left:75%">37.5초</span><span style="left:100%">50.0초</span></div></div><div class="timeline-row" data-run-id="face-portrait-plain-r1"
+      style="min-height:64px">
+      <div class="timeline-name">실행 1</div><div class="time-track">
+        <span class="header-wait" style="width:44.73%"></span>
+        <span class="time-marker final" data-time-ms="26388"
+        style="left:52.78%" title="최종 26.4초"></span>
+        <span class="time-label center" style="left:52.78%;top:27px">
+          최종 <b>26.4초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r2"
+      style="min-height:64px">
+      <div class="timeline-name">실행 2</div><div class="time-track">
+        <span class="header-wait" style="width:49.74%"></span>
+        <span class="time-marker final" data-time-ms="35386"
+        style="left:70.77%" title="최종 35.4초"></span>
+        <span class="time-label center" style="left:70.77%;top:27px">
+          최종 <b>35.4초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r3"
+      style="min-height:64px">
+      <div class="timeline-name">실행 3</div><div class="time-track">
+        <span class="header-wait" style="width:43.78%"></span>
+        <span class="time-marker final" data-time-ms="31842"
+        style="left:63.68%" title="최종 31.8초"></span>
+        <span class="time-label center" style="left:63.68%;top:27px">
+          최종 <b>31.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r4"
+      style="min-height:64px">
+      <div class="timeline-name">실행 4</div><div class="time-track">
+        <span class="header-wait" style="width:42.79%"></span>
+        <span class="time-marker final" data-time-ms="32810"
+        style="left:65.62%" title="최종 32.8초"></span>
+        <span class="time-label center" style="left:65.62%;top:27px">
+          최종 <b>32.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r5"
+      style="min-height:64px">
+      <div class="timeline-name">실행 5</div><div class="time-track">
+        <span class="header-wait" style="width:47.40%"></span>
+        <span class="time-marker final" data-time-ms="31737"
+        style="left:63.47%" title="최종 31.7초"></span>
+        <span class="time-label center" style="left:63.47%;top:27px">
+          최종 <b>31.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r6"
+      style="min-height:64px">
+      <div class="timeline-name">실행 6</div><div class="time-track">
+        <span class="header-wait" style="width:44.41%"></span>
+        <span class="time-marker final" data-time-ms="30641"
+        style="left:61.28%" title="최종 30.6초"></span>
+        <span class="time-label center" style="left:61.28%;top:27px">
+          최종 <b>30.6초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r7"
+      style="min-height:64px">
+      <div class="timeline-name">실행 7</div><div class="time-track">
+        <span class="header-wait" style="width:62.17%"></span>
+        <span class="time-marker final" data-time-ms="37166"
+        style="left:74.33%" title="최종 37.2초"></span>
+        <span class="time-label center" style="left:74.33%;top:27px">
+          최종 <b>37.2초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r8"
+      style="min-height:64px">
+      <div class="timeline-name">실행 8</div><div class="time-track">
+        <span class="header-wait" style="width:46.96%"></span>
+        <span class="time-marker final" data-time-ms="26831"
+        style="left:53.66%" title="최종 26.8초"></span>
+        <span class="time-label center" style="left:53.66%;top:27px">
+          최종 <b>26.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r9"
+      style="min-height:64px">
+      <div class="timeline-name">실행 9</div><div class="time-track">
+        <span class="header-wait" style="width:44.48%"></span>
+        <span class="time-marker final" data-time-ms="24712"
+        style="left:49.42%" title="최종 24.7초"></span>
+        <span class="time-label center" style="left:49.42%;top:27px">
+          최종 <b>24.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r10"
+      style="min-height:64px">
+      <div class="timeline-name">실행 10</div><div class="time-track">
+        <span class="header-wait" style="width:46.59%"></span>
+        <span class="time-marker final" data-time-ms="29554"
+        style="left:59.11%" title="최종 29.6초"></span>
+        <span class="time-label center" style="left:59.11%;top:27px">
+          최종 <b>29.6초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r11"
+      style="min-height:64px">
+      <div class="timeline-name">실행 11</div><div class="time-track">
+        <span class="header-wait" style="width:50.84%"></span>
+        <span class="time-marker final" data-time-ms="33665"
+        style="left:67.33%" title="최종 33.7초"></span>
+        <span class="time-label center" style="left:67.33%;top:27px">
+          최종 <b>33.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-plain-r12"
+      style="min-height:64px">
+      <div class="timeline-name">실행 12</div><div class="time-track">
+        <span class="header-wait" style="width:56.99%"></span>
+        <span class="time-marker final" data-time-ms="31439"
+        style="left:62.88%" title="최종 31.4초"></span>
+        <span class="time-label center" style="left:62.88%;top:27px">
+          최종 <b>31.4초</b></span>
+      </div></div><div class="timeline-row average"
+      style="min-height:64px">
+      <div class="timeline-name">평균 · n=12</div><div class="time-track">
+        <span class="header-wait" style="width:48.41%"></span>
+        <span class="time-marker final" data-time-ms="31014"
+        style="left:62.03%" title="최종 31.0초"></span>
+        <span class="time-label center" style="left:62.03%;top:27px">
+          최종 <b>31.0초</b></span>
+      </div></div></div></div></template><template id="timeline-face-portrait-p1"><div class="scroll"><div class="timeline"><div class="timeline-axis"><div></div><div class="axis-track"><span style="left:0%">0.0초</span><span style="left:25%">12.5초</span><span style="left:50%">25.0초</span><span style="left:75%">37.5초</span><span style="left:100%">50.0초</span></div></div><div class="timeline-row" data-run-id="face-portrait-p1-r1"
+      style="min-height:80px">
+      <div class="timeline-name">실행 1</div><div class="time-track">
+        <span class="header-wait" style="width:38.15%"></span>
+        <span class="preview-band" style="left:43.20%;width:6.44%"></span><span class="time-marker partial" data-time-ms="21599"
+        style="left:43.20%" title="P1 21.6초"></span>
+        <span class="time-label center" style="left:43.20%;top:27px">
+          P1 <b>21.6초</b></span><span class="time-marker final" data-time-ms="24820"
+        style="left:49.64%" title="최종 24.8초"></span>
+        <span class="time-label center" style="left:49.64%;top:46px">
+          최종 <b>24.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r2"
+      style="min-height:64px">
+      <div class="timeline-name">실행 2</div><div class="time-track">
+        <span class="header-wait" style="width:51.43%"></span>
+        <span class="time-marker final" data-time-ms="34436"
+        style="left:68.87%" title="최종 34.4초"></span>
+        <span class="time-label center" style="left:68.87%;top:27px">
+          최종 <b>34.4초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r3"
+      style="min-height:64px">
+      <div class="timeline-name">실행 3</div><div class="time-track">
+        <span class="header-wait" style="width:43.26%"></span>
+        <span class="preview-band" style="left:57.21%;width:20.77%"></span><span class="time-marker partial" data-time-ms="28606"
+        style="left:57.21%" title="P1 28.6초"></span>
+        <span class="time-label center" style="left:57.21%;top:27px">
+          P1 <b>28.6초</b></span><span class="time-marker final" data-time-ms="38993"
+        style="left:77.99%" title="최종 39.0초"></span>
+        <span class="time-label center" style="left:77.99%;top:27px">
+          최종 <b>39.0초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r4"
+      style="min-height:64px">
+      <div class="timeline-name">실행 4</div><div class="time-track">
+        <span class="header-wait" style="width:36.72%"></span>
+        <span class="preview-band" style="left:46.92%;width:16.08%"></span><span class="time-marker partial" data-time-ms="23460"
+        style="left:46.92%" title="P1 23.5초"></span>
+        <span class="time-label center" style="left:46.92%;top:27px">
+          P1 <b>23.5초</b></span><span class="time-marker final" data-time-ms="31501"
+        style="left:63.00%" title="최종 31.5초"></span>
+        <span class="time-label center" style="left:63.00%;top:27px">
+          최종 <b>31.5초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r5"
+      style="min-height:80px">
+      <div class="timeline-name">실행 5</div><div class="time-track">
+        <span class="header-wait" style="width:38.80%"></span>
+        <span class="preview-band" style="left:53.67%;width:11.36%"></span><span class="time-marker partial" data-time-ms="26837"
+        style="left:53.67%" title="P1 26.8초"></span>
+        <span class="time-label center" style="left:53.67%;top:27px">
+          P1 <b>26.8초</b></span><span class="time-marker final" data-time-ms="32516"
+        style="left:65.03%" title="최종 32.5초"></span>
+        <span class="time-label center" style="left:65.03%;top:46px">
+          최종 <b>32.5초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r6"
+      style="min-height:80px">
+      <div class="timeline-name">실행 6</div><div class="time-track">
+        <span class="header-wait" style="width:35.10%"></span>
+        <span class="preview-band" style="left:42.47%;width:5.93%"></span><span class="time-marker partial" data-time-ms="21237"
+        style="left:42.47%" title="P1 21.2초"></span>
+        <span class="time-label center" style="left:42.47%;top:27px">
+          P1 <b>21.2초</b></span><span class="time-marker final" data-time-ms="24204"
+        style="left:48.41%" title="최종 24.2초"></span>
+        <span class="time-label center" style="left:48.41%;top:46px">
+          최종 <b>24.2초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r7"
+      style="min-height:64px">
+      <div class="timeline-name">실행 7</div><div class="time-track">
+        <span class="header-wait" style="width:35.90%"></span>
+        <span class="preview-band" style="left:63.58%;width:26.01%"></span><span class="time-marker partial" data-time-ms="31790"
+        style="left:63.58%" title="P1 31.8초"></span>
+        <span class="time-label center" style="left:63.58%;top:27px">
+          P1 <b>31.8초</b></span><span class="time-marker final" data-time-ms="44794"
+        style="left:89.59%" title="최종 44.8초"></span>
+        <span class="time-label center" style="left:89.59%;top:27px">
+          최종 <b>44.8초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r8"
+      style="min-height:64px">
+      <div class="timeline-name">실행 8</div><div class="time-track">
+        <span class="header-wait" style="width:45.50%"></span>
+        <span class="preview-band" style="left:73.42%;width:25.63%"></span><span class="time-marker partial" data-time-ms="36710"
+        style="left:73.42%" title="P1 36.7초"></span>
+        <span class="time-label center" style="left:73.42%;top:27px">
+          P1 <b>36.7초</b></span><span class="time-marker final" data-time-ms="49524"
+        style="left:99.05%" title="최종 49.5초"></span>
+        <span class="time-label right" style="left:99.05%;top:27px">
+          최종 <b>49.5초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r9"
+      style="min-height:64px">
+      <div class="timeline-name">실행 9</div><div class="time-track">
+        <span class="header-wait" style="width:37.75%"></span>
+        <span class="preview-band" style="left:42.82%;width:22.51%"></span><span class="time-marker partial" data-time-ms="21411"
+        style="left:42.82%" title="P1 21.4초"></span>
+        <span class="time-label center" style="left:42.82%;top:27px">
+          P1 <b>21.4초</b></span><span class="time-marker final" data-time-ms="32669"
+        style="left:65.34%" title="최종 32.7초"></span>
+        <span class="time-label center" style="left:65.34%;top:27px">
+          최종 <b>32.7초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r10"
+      style="min-height:64px">
+      <div class="timeline-name">실행 10</div><div class="time-track">
+        <span class="header-wait" style="width:44.59%"></span>
+        <span class="preview-band" style="left:70.46%;width:23.31%"></span><span class="time-marker partial" data-time-ms="35230"
+        style="left:70.46%" title="P1 35.2초"></span>
+        <span class="time-label center" style="left:70.46%;top:27px">
+          P1 <b>35.2초</b></span><span class="time-marker final" data-time-ms="46886"
+        style="left:93.77%" title="최종 46.9초"></span>
+        <span class="time-label center" style="left:93.77%;top:27px">
+          최종 <b>46.9초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r11"
+      style="min-height:64px">
+      <div class="timeline-name">실행 11</div><div class="time-track">
+        <span class="header-wait" style="width:37.95%"></span>
+        <span class="preview-band" style="left:48.93%;width:18.96%"></span><span class="time-marker partial" data-time-ms="24463"
+        style="left:48.93%" title="P1 24.5초"></span>
+        <span class="time-label center" style="left:48.93%;top:27px">
+          P1 <b>24.5초</b></span><span class="time-marker final" data-time-ms="33945"
+        style="left:67.89%" title="최종 33.9초"></span>
+        <span class="time-label center" style="left:67.89%;top:27px">
+          최종 <b>33.9초</b></span>
+      </div></div><div class="timeline-row" data-run-id="face-portrait-p1-r12"
+      style="min-height:80px">
+      <div class="timeline-name">실행 12</div><div class="time-track">
+        <span class="header-wait" style="width:45.57%"></span>
+        <span class="preview-band" style="left:50.39%;width:13.10%"></span><span class="time-marker partial" data-time-ms="25194"
+        style="left:50.39%" title="P1 25.2초"></span>
+        <span class="time-label center" style="left:50.39%;top:27px">
+          P1 <b>25.2초</b></span><span class="time-marker final" data-time-ms="31744"
+        style="left:63.49%" title="최종 31.7초"></span>
+        <span class="time-label center" style="left:63.49%;top:46px">
+          최종 <b>31.7초</b></span>
+      </div></div><div class="timeline-row average"
+      style="min-height:64px">
+      <div class="timeline-name">평균 · n=12</div><div class="time-track">
+        <span class="header-wait" style="width:40.89%"></span>
+        <span class="preview-band" style="left:53.92%;width:17.09%"></span><span class="time-marker partial" data-time-ms="26958"
+        style="left:53.92%" title="P1 27.0초"></span>
+        <span class="time-label center" style="left:53.92%;top:27px">
+          P1 <b>27.0초</b></span><span class="time-marker final" data-time-ms="35503"
+        style="left:71.01%" title="최종 35.5초"></span>
+        <span class="time-label center" style="left:71.01%;top:27px">
+          최종 <b>35.5초</b></span>
+      </div></div></div></div></template>
+<dialog id="image-zoom" aria-labelledby="image-zoom-title">
+<div class="zoom-header"><h2 id="image-zoom-title">이미지 크게 보기</h2>
+<div class="zoom-actions"><button type="button" id="image-zoom-original" aria-pressed="false">100% 원본</button>
+<button type="button" id="image-zoom-close" autofocus>닫기</button></div></div>
+<p id="image-zoom-error" class="image-error" role="alert" hidden>이미지 파일을 읽지 못했습니다. 보고서를 제공하는 서버와 이미지 경로를 확인하세요.</p>
+<div class="zoom-stage"><img id="image-zoom-image" alt=""></div>
+</dialog>
+<script id="report-data" type="application/json">{"experiment":"experiment2","experimentName":"품질 고정 이미지 응답 속도 실험","status":"complete","repetitions":12,"plannedRequests":72,"settings":{"quality":"low","size":"1024x1024","n":1,"output_format":"png"},"scenarios":[{"id":"daily-photo","title":"일상 사진 생성","kind":"generate","prompt":"여성과 골든리트리버가 거실 소파에 함께 앉아 있는 정사각형의 자연스러운 일상 사진을 생성합니다."},{"id":"whole-style","title":"전체 사진 스타일 변환","kind":"edit","prompt":"같은 입력 사진의 인물·반려동물·구도와 주요 사물을 유지하면서 사진 전체를 수채화풍으로 변환합니다."},{"id":"face-portrait","title":"얼굴·반려동물 캐릭터 변환","kind":"edit","prompt":"입력 사진에서 여성과 반려견의 얼굴만 3D 캐릭터로 변환하고 신체·의상·배경·구도는 최대한 유지합니다."}],"modes":[{"id":"plain","partials":null,"title":"일반 · 미리보기 없음"},{"id":"p1","partials":1,"title":"partial_images=1"}],"source":{"file":"images/input.png","width":1024,"height":1024,"bytes":1821783},"runs":[{"id":"daily-photo-plain-r1","scenario":"daily-photo","mode":"plain","round":1,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":18694.623375,"firstBodyMs":18695.507584,"firstImageMs":20951.400375,"finalImageMs":20951.400375,"streamEndMs":20952.0325,"responseBytes":2415337,"stages":[{"file":"images/daily-photo/plain-r01-final.png","width":1024,"height":1024,"bytes":1811151,"kind":"final","index":null,"receivedMs":20951.400375}]},{"id":"daily-photo-plain-r2","scenario":"daily-photo","mode":"plain","round":2,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":17961.474999999977,"firstBodyMs":17961.989333000034,"firstImageMs":26722.80249999999,"finalImageMs":26722.80249999999,"streamEndMs":26722.943749999977,"responseBytes":2348437,"stages":[{"file":"images/daily-photo/plain-r02-final.png","width":1024,"height":1024,"bytes":1760976,"kind":"final","index":null,"receivedMs":26722.80249999999}]},{"id":"daily-photo-plain-r3","scenario":"daily-photo","mode":"plain","round":3,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":15125.620208999957,"firstBodyMs":15125.968916999991,"firstImageMs":21739.428874999983,"finalImageMs":21739.428874999983,"streamEndMs":21739.541749999975,"responseBytes":2335189,"stages":[{"file":"images/daily-photo/plain-r03-final.png","width":1024,"height":1024,"bytes":1751039,"kind":"final","index":null,"receivedMs":21739.428874999983}]},{"id":"daily-photo-plain-r4","scenario":"daily-photo","mode":"plain","round":4,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":16084.616707999958,"firstBodyMs":16085.275917000137,"firstImageMs":19103.87820799998,"finalImageMs":19103.87820799998,"streamEndMs":19103.930167000042,"responseBytes":2274997,"stages":[{"file":"images/daily-photo/plain-r04-final.png","width":1024,"height":1024,"bytes":1705895,"kind":"final","index":null,"receivedMs":19103.87820799998}]},{"id":"daily-photo-plain-r5","scenario":"daily-photo","mode":"plain","round":5,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":15833.219459000044,"firstBodyMs":15833.52558399993,"firstImageMs":24785.7278750001,"finalImageMs":24785.7278750001,"streamEndMs":24785.798583999975,"responseBytes":2364013,"stages":[{"file":"images/daily-photo/plain-r05-final.png","width":1024,"height":1024,"bytes":1772657,"kind":"final","index":null,"receivedMs":24785.7278750001}]},{"id":"daily-photo-plain-r6","scenario":"daily-photo","mode":"plain","round":6,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":16664.612708999775,"firstBodyMs":16664.895916999783,"firstImageMs":23784.298334000167,"finalImageMs":23784.298334000167,"streamEndMs":23784.348666999955,"responseBytes":2263533,"stages":[{"file":"images/daily-photo/plain-r06-final.png","width":1024,"height":1024,"bytes":1697297,"kind":"final","index":null,"receivedMs":23784.298334000167}]},{"id":"daily-photo-plain-r7","scenario":"daily-photo","mode":"plain","round":7,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":16062.815750000067,"firstBodyMs":16063.065458000172,"firstImageMs":21746.84887500014,"finalImageMs":21746.84887500014,"streamEndMs":21747,"responseBytes":2425937,"stages":[{"file":"images/daily-photo/plain-r07-final.png","width":1024,"height":1024,"bytes":1819101,"kind":"final","index":null,"receivedMs":21746.84887500014}]},{"id":"daily-photo-plain-r8","scenario":"daily-photo","mode":"plain","round":8,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":16686.1437090002,"firstBodyMs":16686.564209000207,"firstImageMs":27160.12875000015,"finalImageMs":27160.12875000015,"streamEndMs":27160.30787499994,"responseBytes":2504977,"stages":[{"file":"images/daily-photo/plain-r08-final.png","width":1024,"height":1024,"bytes":1878381,"kind":"final","index":null,"receivedMs":27160.12875000015}]},{"id":"daily-photo-plain-r9","scenario":"daily-photo","mode":"plain","round":9,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":16448.771083,"firstBodyMs":16449.488583,"firstImageMs":19357.91208299999,"finalImageMs":19357.91208299999,"streamEndMs":19358.14374999999,"responseBytes":2323713,"stages":[{"file":"images/daily-photo/plain-r09-final.png","width":1024,"height":1024,"bytes":1742431,"kind":"final","index":null,"receivedMs":19357.91208299999}]},{"id":"daily-photo-plain-r10","scenario":"daily-photo","mode":"plain","round":10,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":15576.803124999977,"firstBodyMs":15577.387541000033,"firstImageMs":24028.083040999947,"finalImageMs":24028.083040999947,"streamEndMs":24028.23191600002,"responseBytes":2346509,"stages":[{"file":"images/daily-photo/plain-r10-final.png","width":1024,"height":1024,"bytes":1759528,"kind":"final","index":null,"receivedMs":24028.083040999947}]},{"id":"daily-photo-plain-r11","scenario":"daily-photo","mode":"plain","round":11,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":15333.202625000034,"firstBodyMs":15333.74450000003,"firstImageMs":17647.18087499996,"finalImageMs":17647.18087499996,"streamEndMs":17647.27429099998,"responseBytes":2293241,"stages":[{"file":"images/daily-photo/plain-r11-final.png","width":1024,"height":1024,"bytes":1719579,"kind":"final","index":null,"receivedMs":17647.18087499996}]},{"id":"daily-photo-plain-r12","scenario":"daily-photo","mode":"plain","round":12,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":17848.398917000042,"firstBodyMs":17848.658500000136,"firstImageMs":22460.133499999996,"finalImageMs":22460.133499999996,"streamEndMs":22460.265083000064,"responseBytes":2270741,"stages":[{"file":"images/daily-photo/plain-r12-final.png","width":1024,"height":1024,"bytes":1702702,"kind":"final","index":null,"receivedMs":22460.133499999996}]},{"id":"daily-photo-p1-r1","scenario":"daily-photo","mode":"p1","round":1,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":13749.925957999978,"firstBodyMs":13750.429207999987,"firstImageMs":21354.433499999985,"finalImageMs":32074.384207999974,"streamEndMs":32084.67087499998,"responseBytes":4652846,"stages":[{"file":"images/daily-photo/p1-r01-p1.png","width":1024,"height":1024,"bytes":1742083,"kind":"partial","index":0,"receivedMs":21354.433499999985},{"file":"images/daily-photo/p1-r01-final.png","width":1024,"height":1024,"bytes":1747040,"kind":"final","index":null,"receivedMs":32074.384207999974}]},{"id":"daily-photo-p1-r2","scenario":"daily-photo","mode":"p1","round":2,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":14128.095417000004,"firstBodyMs":14128.581750000012,"firstImageMs":21707.35829200002,"finalImageMs":32812.55208300002,"streamEndMs":32825.75483300001,"responseBytes":4691046,"stages":[{"file":"images/daily-photo/p1-r02-p1.png","width":1024,"height":1024,"bytes":1741437,"kind":"partial","index":0,"receivedMs":21707.35829200002},{"file":"images/daily-photo/p1-r02-final.png","width":1024,"height":1024,"bytes":1776338,"kind":"final","index":null,"receivedMs":32812.55208300002}]},{"id":"daily-photo-p1-r3","scenario":"daily-photo","mode":"p1","round":3,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":13102.765999999945,"firstBodyMs":13103.389708000002,"firstImageMs":25364.496124999947,"finalImageMs":34832.31166600005,"streamEndMs":34838.23462500004,"responseBytes":4609586,"stages":[{"file":"images/daily-photo/p1-r03-p1.png","width":1024,"height":1024,"bytes":1720164,"kind":"partial","index":0,"receivedMs":25364.496124999947},{"file":"images/daily-photo/p1-r03-final.png","width":1024,"height":1024,"bytes":1736515,"kind":"final","index":null,"receivedMs":34832.31166600005}]},{"id":"daily-photo-p1-r4","scenario":"daily-photo","mode":"p1","round":4,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":13799.191167000216,"firstBodyMs":13799.891625000164,"firstImageMs":19194.320500000147,"finalImageMs":32381.20941700018,"streamEndMs":32389.964375000214,"responseBytes":4743854,"stages":[{"file":"images/daily-photo/p1-r04-p1.png","width":1024,"height":1024,"bytes":1753596,"kind":"partial","index":0,"receivedMs":19194.320500000147},{"file":"images/daily-photo/p1-r04-final.png","width":1024,"height":1024,"bytes":1803784,"kind":"final","index":null,"receivedMs":32381.20941700018}]},{"id":"daily-photo-p1-r5","scenario":"daily-photo","mode":"p1","round":5,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":11188.478124999907,"firstBodyMs":11189.04366700002,"firstImageMs":26784.74770800001,"finalImageMs":43388.43424999993,"streamEndMs":43394.99341699993,"responseBytes":5048226,"stages":[{"file":"images/daily-photo/p1-r05-p1.png","width":1024,"height":1024,"bytes":1864396,"kind":"partial","index":0,"receivedMs":26784.74770800001},{"file":"images/daily-photo/p1-r05-final.png","width":1024,"height":1024,"bytes":1921261,"kind":"final","index":null,"receivedMs":43388.43424999993}]},{"id":"daily-photo-p1-r6","scenario":"daily-photo","mode":"p1","round":6,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":11700.772833999945,"firstBodyMs":11701.028208999895,"firstImageMs":15310.865999999922,"finalImageMs":17774.466333999997,"streamEndMs":17779.41445900011,"responseBytes":4640730,"stages":[{"file":"images/daily-photo/p1-r06-p1.png","width":1024,"height":1024,"bytes":1746636,"kind":"partial","index":0,"receivedMs":15310.865999999922},{"file":"images/daily-photo/p1-r06-final.png","width":1024,"height":1024,"bytes":1733402,"kind":"final","index":null,"receivedMs":17774.466333999997}]},{"id":"daily-photo-p1-r7","scenario":"daily-photo","mode":"p1","round":7,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":10608.75524999993,"firstBodyMs":10608.996541999746,"firstImageMs":13209.599750000052,"finalImageMs":16673.192249999847,"streamEndMs":16679.198041999713,"responseBytes":4727366,"stages":[{"file":"images/daily-photo/p1-r07-p1.png","width":1024,"height":1024,"bytes":1792429,"kind":"partial","index":0,"receivedMs":13209.599750000052},{"file":"images/daily-photo/p1-r07-final.png","width":1024,"height":1024,"bytes":1752583,"kind":"final","index":null,"receivedMs":16673.192249999847}]},{"id":"daily-photo-p1-r8","scenario":"daily-photo","mode":"p1","round":8,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":12826.922999999952,"firstBodyMs":12827.291541999672,"firstImageMs":21387.101999999955,"finalImageMs":29003.221916999668,"streamEndMs":29009.603749999776,"responseBytes":4708334,"stages":[{"file":"images/daily-photo/p1-r08-p1.png","width":1024,"height":1024,"bytes":1765547,"kind":"partial","index":0,"receivedMs":21387.101999999955},{"file":"images/daily-photo/p1-r08-final.png","width":1024,"height":1024,"bytes":1765192,"kind":"final","index":null,"receivedMs":29003.221916999668}]},{"id":"daily-photo-p1-r9","scenario":"daily-photo","mode":"p1","round":9,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":12911.420375000045,"firstBodyMs":12912.336292000022,"firstImageMs":19956.273875000014,"finalImageMs":26704.49791700003,"streamEndMs":26714.242625000014,"responseBytes":4639702,"stages":[{"file":"images/daily-photo/p1-r09-p1.png","width":1024,"height":1024,"bytes":1731574,"kind":"partial","index":0,"receivedMs":19956.273875000014},{"file":"images/daily-photo/p1-r09-final.png","width":1024,"height":1024,"bytes":1747690,"kind":"final","index":null,"receivedMs":26704.49791700003}]},{"id":"daily-photo-p1-r10","scenario":"daily-photo","mode":"p1","round":10,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":11759.699750000029,"firstBodyMs":11760.351749999973,"firstImageMs":23282.09062500001,"finalImageMs":33522.852166,"streamEndMs":33528.00441599998,"responseBytes":4773738,"stages":[{"file":"images/daily-photo/p1-r10-p1.png","width":1024,"height":1024,"bytes":1817881,"kind":"partial","index":0,"receivedMs":23282.09062500001},{"file":"images/daily-photo/p1-r10-final.png","width":1024,"height":1024,"bytes":1761910,"kind":"final","index":null,"receivedMs":33522.852166}]},{"id":"daily-photo-p1-r11","scenario":"daily-photo","mode":"p1","round":11,"success":true,"requestedPartials":1,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":19580.729708000086,"firstBodyMs":19581.122041000053,"firstImageMs":22752.18862499995,"finalImageMs":22752.18862499995,"streamEndMs":22755.660499999998,"responseBytes":2307538,"stages":[{"file":"images/daily-photo/p1-r11-final.png","width":1024,"height":1024,"bytes":1730330,"kind":"final","index":null,"receivedMs":22752.18862499995}]},{"id":"daily-photo-p1-r12","scenario":"daily-photo","mode":"p1","round":12,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":13797.083791999845,"firstBodyMs":13797.789499999955,"firstImageMs":17446.43545800005,"finalImageMs":17820.724291999824,"streamEndMs":17824.41041699983,"responseBytes":4638862,"stages":[{"file":"images/daily-photo/p1-r12-p1.png","width":1024,"height":1024,"bytes":1717371,"kind":"partial","index":0,"receivedMs":17446.43545800005},{"file":"images/daily-photo/p1-r12-final.png","width":1024,"height":1024,"bytes":1761265,"kind":"final","index":null,"receivedMs":17820.724291999824}]},{"id":"whole-style-plain-r1","scenario":"whole-style","mode":"plain","round":1,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":25560.08841699999,"firstBodyMs":25560.673916999993,"firstImageMs":35711.294167,"finalImageMs":35711.294167,"streamEndMs":35711.92724999999,"responseBytes":2891849,"stages":[{"file":"images/whole-style/plain-r01-final.png","width":1024,"height":1024,"bytes":2168532,"kind":"final","index":null,"receivedMs":35711.294167}]},{"id":"whole-style-plain-r2","scenario":"whole-style","mode":"plain","round":2,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":22859.17537500005,"firstBodyMs":22859.707915999985,"firstImageMs":28624.894875000056,"finalImageMs":28624.894875000056,"streamEndMs":28625.036625000008,"responseBytes":2837317,"stages":[{"file":"images/whole-style/plain-r02-final.png","width":1024,"height":1024,"bytes":2127633,"kind":"final","index":null,"receivedMs":28624.894875000056}]},{"id":"whole-style-plain-r3","scenario":"whole-style","mode":"plain","round":3,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":22890.891583000077,"firstBodyMs":22891.052542000078,"firstImageMs":25582.48912500008,"finalImageMs":25582.48912500008,"streamEndMs":25582.766750000068,"responseBytes":2917581,"stages":[{"file":"images/whole-style/plain-r03-final.png","width":1024,"height":1024,"bytes":2187830,"kind":"final","index":null,"receivedMs":25582.48912500008}]},{"id":"whole-style-plain-r4","scenario":"whole-style","mode":"plain","round":4,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":24808.011082999874,"firstBodyMs":24808.32424999983,"firstImageMs":39334.15049999999,"finalImageMs":39334.15049999999,"streamEndMs":39334.225582999876,"responseBytes":2890881,"stages":[{"file":"images/whole-style/plain-r04-final.png","width":1024,"height":1024,"bytes":2167805,"kind":"final","index":null,"receivedMs":39334.15049999999}]},{"id":"whole-style-plain-r5","scenario":"whole-style","mode":"plain","round":5,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":23138.99624999985,"firstBodyMs":23139.083332999842,"firstImageMs":25748.235417000018,"finalImageMs":25748.235417000018,"streamEndMs":25748.331458,"responseBytes":2909953,"stages":[{"file":"images/whole-style/plain-r05-final.png","width":1024,"height":1024,"bytes":2182110,"kind":"final","index":null,"receivedMs":25748.235417000018}]},{"id":"whole-style-plain-r6","scenario":"whole-style","mode":"plain","round":6,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":24321.171249999665,"firstBodyMs":24321.569583999924,"firstImageMs":27058.77087499993,"finalImageMs":27058.77087499993,"streamEndMs":27058.97529199999,"responseBytes":2891773,"stages":[{"file":"images/whole-style/plain-r06-final.png","width":1024,"height":1024,"bytes":2168475,"kind":"final","index":null,"receivedMs":27058.77087499993}]},{"id":"whole-style-plain-r7","scenario":"whole-style","mode":"plain","round":7,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":22403.192832999863,"firstBodyMs":22403.571665999945,"firstImageMs":34592.30012500007,"finalImageMs":34592.30012500007,"streamEndMs":34592.39108299976,"responseBytes":2854341,"stages":[{"file":"images/whole-style/plain-r07-final.png","width":1024,"height":1024,"bytes":2140401,"kind":"final","index":null,"receivedMs":34592.30012500007}]},{"id":"whole-style-plain-r8","scenario":"whole-style","mode":"plain","round":8,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":30295.807749999687,"firstBodyMs":30296.415624999907,"firstImageMs":41312.522291999776,"finalImageMs":41312.522291999776,"streamEndMs":41312.78579199966,"responseBytes":2886229,"stages":[{"file":"images/whole-style/plain-r08-final.png","width":1024,"height":1024,"bytes":2164317,"kind":"final","index":null,"receivedMs":41312.522291999776}]},{"id":"whole-style-plain-r9","scenario":"whole-style","mode":"plain","round":9,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":24653.94425,"firstBodyMs":24654.44733299999,"firstImageMs":27372.596791999997,"finalImageMs":27372.596791999997,"streamEndMs":27372.70516699998,"responseBytes":2893201,"stages":[{"file":"images/whole-style/plain-r09-final.png","width":1024,"height":1024,"bytes":2169544,"kind":"final","index":null,"receivedMs":27372.596791999997}]},{"id":"whole-style-plain-r10","scenario":"whole-style","mode":"plain","round":10,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":25160.71433300001,"firstBodyMs":25161.176749999984,"firstImageMs":34886.443415999995,"finalImageMs":34886.443415999995,"streamEndMs":34886.69179099996,"responseBytes":2880237,"stages":[{"file":"images/whole-style/plain-r10-final.png","width":1024,"height":1024,"bytes":2159821,"kind":"final","index":null,"receivedMs":34886.443415999995}]},{"id":"whole-style-plain-r11","scenario":"whole-style","mode":"plain","round":11,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":24775.587499999907,"firstBodyMs":24775.93524999998,"firstImageMs":32200.135624999995,"finalImageMs":32200.135624999995,"streamEndMs":32200.575375000015,"responseBytes":2871549,"stages":[{"file":"images/whole-style/plain-r11-final.png","width":1024,"height":1024,"bytes":2153306,"kind":"final","index":null,"receivedMs":32200.135624999995}]},{"id":"whole-style-plain-r12","scenario":"whole-style","mode":"plain","round":12,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":21915.83233299991,"firstBodyMs":21916.12962500006,"firstImageMs":29974.910166000016,"finalImageMs":29974.910166000016,"streamEndMs":29975.073333000066,"responseBytes":2863229,"stages":[{"file":"images/whole-style/plain-r12-final.png","width":1024,"height":1024,"bytes":2147066,"kind":"final","index":null,"receivedMs":29974.910166000016}]},{"id":"whole-style-p1-r1","scenario":"whole-style","mode":"p1","round":1,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":16465.94225,"firstBodyMs":16466.810709,"firstImageMs":23956.923667000003,"finalImageMs":37673.901542,"streamEndMs":37687.278542,"responseBytes":5742998,"stages":[{"file":"images/whole-style/p1-r01-p1.png","width":1024,"height":1024,"bytes":2127820,"kind":"partial","index":0,"receivedMs":23956.923667000003},{"file":"images/whole-style/p1-r01-final.png","width":1024,"height":1024,"bytes":2178932,"kind":"final","index":null,"receivedMs":37673.901542}]},{"id":"whole-style-p1-r2","scenario":"whole-style","mode":"p1","round":2,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":20543.947250000027,"firstBodyMs":20544.529625000025,"firstImageMs":23365.058958000038,"finalImageMs":24395.436917000043,"streamEndMs":24400.746250000026,"responseBytes":5784358,"stages":[{"file":"images/whole-style/p1-r02-p1.png","width":1024,"height":1024,"bytes":2165313,"kind":"partial","index":0,"receivedMs":23365.058958000038},{"file":"images/whole-style/p1-r02-final.png","width":1024,"height":1024,"bytes":2172460,"kind":"final","index":null,"receivedMs":24395.436917000043}]},{"id":"whole-style-p1-r3","scenario":"whole-style","mode":"p1","round":3,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":23504.32083400013,"firstBodyMs":23505.18737499998,"firstImageMs":28256.96212500008,"finalImageMs":32251.503666999983,"streamEndMs":32256.44112500013,"responseBytes":5714266,"stages":[{"file":"images/whole-style/p1-r03-p1.png","width":1024,"height":1024,"bytes":2126130,"kind":"partial","index":0,"receivedMs":28256.96212500008},{"file":"images/whole-style/p1-r03-final.png","width":1024,"height":1024,"bytes":2159074,"kind":"final","index":null,"receivedMs":32251.503666999983}]},{"id":"whole-style-p1-r4","scenario":"whole-style","mode":"p1","round":4,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":20755.035374999978,"firstBodyMs":20755.64149999991,"firstImageMs":24236.717375000007,"finalImageMs":27339.920374999987,"streamEndMs":27344.462624999927,"responseBytes":5675938,"stages":[{"file":"images/whole-style/p1-r04-p1.png","width":1024,"height":1024,"bytes":2112558,"kind":"partial","index":0,"receivedMs":24236.717375000007},{"file":"images/whole-style/p1-r04-final.png","width":1024,"height":1024,"bytes":2143901,"kind":"final","index":null,"receivedMs":27339.920374999987}]},{"id":"whole-style-p1-r5","scenario":"whole-style","mode":"p1","round":5,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":23075.16804200015,"firstBodyMs":23075.452833000105,"firstImageMs":26331.110125000123,"finalImageMs":30561.345000000205,"streamEndMs":30566.292583000148,"responseBytes":5694818,"stages":[{"file":"images/whole-style/p1-r05-p1.png","width":1024,"height":1024,"bytes":2100811,"kind":"partial","index":0,"receivedMs":26331.110125000123},{"file":"images/whole-style/p1-r05-final.png","width":1024,"height":1024,"bytes":2169807,"kind":"final","index":null,"receivedMs":30561.345000000205}]},{"id":"whole-style-p1-r6","scenario":"whole-style","mode":"p1","round":6,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":22171.669709000038,"firstBodyMs":22172.00604200014,"firstImageMs":25143.553874999983,"finalImageMs":27871.045417000074,"streamEndMs":27876.695042000152,"responseBytes":5622366,"stages":[{"file":"images/whole-style/p1-r06-p1.png","width":1024,"height":1024,"bytes":2060422,"kind":"partial","index":0,"receivedMs":25143.553874999983},{"file":"images/whole-style/p1-r06-final.png","width":1024,"height":1024,"bytes":2155857,"kind":"final","index":null,"receivedMs":27871.045417000074}]},{"id":"whole-style-p1-r7","scenario":"whole-style","mode":"p1","round":7,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":16866.51504100021,"firstBodyMs":16867.281208000146,"firstImageMs":19528.176165999845,"finalImageMs":22812.61420799978,"streamEndMs":22818.036582999863,"responseBytes":5716162,"stages":[{"file":"images/whole-style/p1-r07-p1.png","width":1024,"height":1024,"bytes":2132588,"kind":"partial","index":0,"receivedMs":19528.176165999845},{"file":"images/whole-style/p1-r07-final.png","width":1024,"height":1024,"bytes":2154039,"kind":"final","index":null,"receivedMs":22812.61420799978}]},{"id":"whole-style-p1-r8","scenario":"whole-style","mode":"p1","round":8,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":17010.065249999985,"firstBodyMs":17010.736917000264,"firstImageMs":20196.058500000276,"finalImageMs":25781.2072089999,"streamEndMs":25786.37875000015,"responseBytes":5704010,"stages":[{"file":"images/whole-style/p1-r08-p1.png","width":1024,"height":1024,"bytes":2126064,"kind":"partial","index":0,"receivedMs":20196.058500000276},{"file":"images/whole-style/p1-r08-final.png","width":1024,"height":1024,"bytes":2151449,"kind":"final","index":null,"receivedMs":25781.2072089999}]},{"id":"whole-style-p1-r9","scenario":"whole-style","mode":"p1","round":9,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":20789.059708000044,"firstBodyMs":20789.555416000017,"firstImageMs":33938.98691600002,"finalImageMs":44610.435666000005,"streamEndMs":44619.461500000034,"responseBytes":5720806,"stages":[{"file":"images/whole-style/p1-r09-p1.png","width":1024,"height":1024,"bytes":2121805,"kind":"partial","index":0,"receivedMs":33938.98691600002},{"file":"images/whole-style/p1-r09-final.png","width":1024,"height":1024,"bytes":2168304,"kind":"final","index":null,"receivedMs":44610.435666000005}]},{"id":"whole-style-p1-r10","scenario":"whole-style","mode":"p1","round":10,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":18209.535165999958,"firstBodyMs":18210.192540999968,"firstImageMs":23185.71979100001,"finalImageMs":26217.586207999964,"streamEndMs":26223.16074999998,"responseBytes":5717454,"stages":[{"file":"images/whole-style/p1-r10-p1.png","width":1024,"height":1024,"bytes":2122343,"kind":"partial","index":0,"receivedMs":23185.71979100001},{"file":"images/whole-style/p1-r10-final.png","width":1024,"height":1024,"bytes":2165253,"kind":"final","index":null,"receivedMs":26217.586207999964}]},{"id":"whole-style-p1-r11","scenario":"whole-style","mode":"p1","round":11,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":18144.80262500001,"firstBodyMs":18145.3772910001,"firstImageMs":21453.55262500001,"finalImageMs":23120.873208000092,"streamEndMs":23127.830041000037,"responseBytes":5681246,"stages":[{"file":"images/whole-style/p1-r11-p1.png","width":1024,"height":1024,"bytes":2106176,"kind":"partial","index":0,"receivedMs":21453.55262500001},{"file":"images/whole-style/p1-r11-final.png","width":1024,"height":1024,"bytes":2154262,"kind":"final","index":null,"receivedMs":23120.873208000092}]},{"id":"whole-style-p1-r12","scenario":"whole-style","mode":"p1","round":12,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":18393.86049999995,"firstBodyMs":18394.158833999885,"firstImageMs":26611.611583999824,"finalImageMs":36474.15658399998,"streamEndMs":36483.23920900002,"responseBytes":5742598,"stages":[{"file":"images/whole-style/p1-r12-p1.png","width":1024,"height":1024,"bytes":2129945,"kind":"partial","index":0,"receivedMs":26611.611583999824},{"file":"images/whole-style/p1-r12-final.png","width":1024,"height":1024,"bytes":2176507,"kind":"final","index":null,"receivedMs":36474.15658399998}]},{"id":"face-portrait-plain-r1","scenario":"face-portrait","mode":"plain","round":1,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":22363.378708000004,"firstBodyMs":22363.81912500001,"firstImageMs":26387.583000000013,"finalImageMs":26387.583000000013,"streamEndMs":26387.681249999994,"responseBytes":2364674,"stages":[{"file":"images/face-portrait/plain-r01-final.png","width":1024,"height":1024,"bytes":1773148,"kind":"final","index":null,"receivedMs":26387.583000000013}]},{"id":"face-portrait-plain-r2","scenario":"face-portrait","mode":"plain","round":2,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":24869.11845800001,"firstBodyMs":24869.53687499999,"firstImageMs":35386.00362500001,"finalImageMs":35386.00362500001,"streamEndMs":35386.17695799994,"responseBytes":2354674,"stages":[{"file":"images/face-portrait/plain-r02-final.png","width":1024,"height":1024,"bytes":1765649,"kind":"final","index":null,"receivedMs":35386.00362500001}]},{"id":"face-portrait-plain-r3","scenario":"face-portrait","mode":"plain","round":3,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":21888.576750000007,"firstBodyMs":21889.15358299995,"firstImageMs":31841.619666000013,"finalImageMs":31841.619666000013,"streamEndMs":31841.965749999974,"responseBytes":2322418,"stages":[{"file":"images/face-portrait/plain-r03-final.png","width":1024,"height":1024,"bytes":1741457,"kind":"final","index":null,"receivedMs":31841.619666000013}]},{"id":"face-portrait-plain-r4","scenario":"face-portrait","mode":"plain","round":4,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":21393.696666000178,"firstBodyMs":21394.036333000055,"firstImageMs":32810.17341600009,"finalImageMs":32810.17341600009,"streamEndMs":32810.236791,"responseBytes":2338918,"stages":[{"file":"images/face-portrait/plain-r04-final.png","width":1024,"height":1024,"bytes":1753832,"kind":"final","index":null,"receivedMs":32810.17341600009}]},{"id":"face-portrait-plain-r5","scenario":"face-portrait","mode":"plain","round":5,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":23700.821250000037,"firstBodyMs":23700.971625000006,"firstImageMs":31737.297541999957,"finalImageMs":31737.297541999957,"streamEndMs":31737.411916999845,"responseBytes":2337706,"stages":[{"file":"images/face-portrait/plain-r05-final.png","width":1024,"height":1024,"bytes":1752922,"kind":"final","index":null,"receivedMs":31737.297541999957}]},{"id":"face-portrait-plain-r6","scenario":"face-portrait","mode":"plain","round":6,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":22204.079374999972,"firstBodyMs":22204.773582999827,"firstImageMs":30640.530415999936,"finalImageMs":30640.530415999936,"streamEndMs":30640.625249999808,"responseBytes":2313870,"stages":[{"file":"images/face-portrait/plain-r06-final.png","width":1024,"height":1024,"bytes":1735047,"kind":"final","index":null,"receivedMs":30640.530415999936}]},{"id":"face-portrait-plain-r7","scenario":"face-portrait","mode":"plain","round":7,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":31084.14920799993,"firstBodyMs":31084.375041999854,"firstImageMs":37165.542832999956,"finalImageMs":37165.542832999956,"streamEndMs":37165.58949999977,"responseBytes":2336902,"stages":[{"file":"images/face-portrait/plain-r07-final.png","width":1024,"height":1024,"bytes":1752320,"kind":"final","index":null,"receivedMs":37165.542832999956}]},{"id":"face-portrait-plain-r8","scenario":"face-portrait","mode":"plain","round":8,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":23479.156291999854,"firstBodyMs":23479.53695899993,"firstImageMs":26830.91670899978,"finalImageMs":26830.91670899978,"streamEndMs":26831.048833999783,"responseBytes":2338602,"stages":[{"file":"images/face-portrait/plain-r08-final.png","width":1024,"height":1024,"bytes":1753594,"kind":"final","index":null,"receivedMs":26830.91670899978}]},{"id":"face-portrait-plain-r9","scenario":"face-portrait","mode":"plain","round":9,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":22240.084917,"firstBodyMs":22240.960417000002,"firstImageMs":24712.194375,"finalImageMs":24712.194375,"streamEndMs":24712.771834,"responseBytes":2352458,"stages":[{"file":"images/face-portrait/plain-r09-final.png","width":1024,"height":1024,"bytes":1763987,"kind":"final","index":null,"receivedMs":24712.194375}]},{"id":"face-portrait-plain-r10","scenario":"face-portrait","mode":"plain","round":10,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":23293.235250000027,"firstBodyMs":23293.54570799996,"firstImageMs":29554.16441700002,"finalImageMs":29554.16441700002,"streamEndMs":29554.33149999997,"responseBytes":2356698,"stages":[{"file":"images/face-portrait/plain-r10-final.png","width":1024,"height":1024,"bytes":1767166,"kind":"final","index":null,"receivedMs":29554.16441700002}]},{"id":"face-portrait-plain-r11","scenario":"face-portrait","mode":"plain","round":11,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":25417.701917,"firstBodyMs":25417.981458999915,"firstImageMs":33664.972499999916,"finalImageMs":33664.972499999916,"streamEndMs":33665.07474999991,"responseBytes":2334870,"stages":[{"file":"images/face-portrait/plain-r11-final.png","width":1024,"height":1024,"bytes":1750795,"kind":"final","index":null,"receivedMs":33664.972499999916}]},{"id":"face-portrait-plain-r12","scenario":"face-portrait","mode":"plain","round":12,"success":true,"requestedPartials":null,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":28496.009249999886,"firstBodyMs":28496.1939999999,"firstImageMs":31439.26033399999,"finalImageMs":31439.26033399999,"streamEndMs":31439.394291999983,"responseBytes":2363978,"stages":[{"file":"images/face-portrait/plain-r12-final.png","width":1024,"height":1024,"bytes":1772626,"kind":"final","index":null,"receivedMs":31439.26033399999}]},{"id":"face-portrait-p1-r1","scenario":"face-portrait","mode":"p1","round":1,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":19075.900292000035,"firstBodyMs":19078.021084000007,"firstImageMs":21598.515167000005,"finalImageMs":24819.55504200002,"streamEndMs":24823.570125000027,"responseBytes":4659763,"stages":[{"file":"images/face-portrait/p1-r01-p1.png","width":1024,"height":1024,"bytes":1722168,"kind":"partial","index":0,"receivedMs":21598.515167000005},{"file":"images/face-portrait/p1-r01-final.png","width":1024,"height":1024,"bytes":1772159,"kind":"final","index":null,"receivedMs":24819.55504200002}]},{"id":"face-portrait-p1-r2","scenario":"face-portrait","mode":"p1","round":2,"success":true,"requestedPartials":1,"actualPartials":0,"requestedQuality":"low","actualQuality":"low","headersMs":25713.45541699999,"firstBodyMs":25714.276625,"firstImageMs":34435.79020799999,"finalImageMs":34435.79020799999,"streamEndMs":34445.74254199996,"responseBytes":2341239,"stages":[{"file":"images/face-portrait/p1-r02-final.png","width":1024,"height":1024,"bytes":1755610,"kind":"final","index":null,"receivedMs":34435.79020799999}]},{"id":"face-portrait-p1-r3","scenario":"face-portrait","mode":"p1","round":3,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":21630.75679100002,"firstBodyMs":21631.80220799998,"firstImageMs":28606.37937500002,"finalImageMs":38993.146624999936,"streamEndMs":39001.71399999992,"responseBytes":4802591,"stages":[{"file":"images/face-portrait/p1-r03-p1.png","width":1024,"height":1024,"bytes":1798989,"kind":"partial","index":0,"receivedMs":28606.37937500002},{"file":"images/face-portrait/p1-r03-final.png","width":1024,"height":1024,"bytes":1802460,"kind":"final","index":null,"receivedMs":38993.146624999936}]},{"id":"face-portrait-p1-r4","scenario":"face-portrait","mode":"p1","round":4,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":18360.142625000095,"firstBodyMs":18360.761375000002,"firstImageMs":23459.70412499993,"finalImageMs":31501.274833000032,"streamEndMs":31508.357250000117,"responseBytes":4725931,"stages":[{"file":"images/face-portrait/p1-r04-p1.png","width":1024,"height":1024,"bytes":1759933,"kind":"partial","index":0,"receivedMs":23459.70412499993},{"file":"images/face-portrait/p1-r04-final.png","width":1024,"height":1024,"bytes":1784019,"kind":"final","index":null,"receivedMs":31501.274833000032}]},{"id":"face-portrait-p1-r5","scenario":"face-portrait","mode":"p1","round":5,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":19400.62383399997,"firstBodyMs":19401.167958999984,"firstImageMs":26837.424249999924,"finalImageMs":32515.589959000004,"streamEndMs":32521.670625000028,"responseBytes":4623343,"stages":[{"file":"images/face-portrait/p1-r05-p1.png","width":1024,"height":1024,"bytes":1709046,"kind":"partial","index":0,"receivedMs":26837.424249999924},{"file":"images/face-portrait/p1-r05-final.png","width":1024,"height":1024,"bytes":1757965,"kind":"final","index":null,"receivedMs":32515.589959000004}]},{"id":"face-portrait-p1-r6","scenario":"face-portrait","mode":"p1","round":6,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":17547.75945799984,"firstBodyMs":17548.013540999964,"firstImageMs":21236.817665999988,"finalImageMs":24203.72708299989,"streamEndMs":24207.913166000042,"responseBytes":4794579,"stages":[{"file":"images/face-portrait/p1-r06-p1.png","width":1024,"height":1024,"bytes":1778393,"kind":"partial","index":0,"receivedMs":21236.817665999988},{"file":"images/face-portrait/p1-r06-final.png","width":1024,"height":1024,"bytes":1817044,"kind":"final","index":null,"receivedMs":24203.72708299989}]},{"id":"face-portrait-p1-r7","scenario":"face-portrait","mode":"p1","round":7,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":17950.32112500025,"firstBodyMs":17950.999333000276,"firstImageMs":31789.53341699997,"finalImageMs":44793.53295799997,"streamEndMs":44801.43933300022,"responseBytes":4669647,"stages":[{"file":"images/face-portrait/p1-r07-p1.png","width":1024,"height":1024,"bytes":1742358,"kind":"partial","index":0,"receivedMs":31789.53341699997},{"file":"images/face-portrait/p1-r07-final.png","width":1024,"height":1024,"bytes":1759383,"kind":"final","index":null,"receivedMs":44793.53295799997}]},{"id":"face-portrait-p1-r8","scenario":"face-portrait","mode":"p1","round":8,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":22749.311125000007,"firstBodyMs":22749.920834000222,"firstImageMs":36709.878583999816,"finalImageMs":49524.37920900015,"streamEndMs":49530.40033400012,"responseBytes":4639879,"stages":[{"file":"images/face-portrait/p1-r08-p1.png","width":1024,"height":1024,"bytes":1707527,"kind":"partial","index":0,"receivedMs":36709.878583999816},{"file":"images/face-portrait/p1-r08-final.png","width":1024,"height":1024,"bytes":1771886,"kind":"final","index":null,"receivedMs":49524.37920900015}]},{"id":"face-portrait-p1-r9","scenario":"face-portrait","mode":"p1","round":9,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":18876.490542000014,"firstBodyMs":18876.895458000014,"firstImageMs":21411.058208000002,"finalImageMs":32668.51800000001,"streamEndMs":32681.301167000027,"responseBytes":4609967,"stages":[{"file":"images/face-portrait/p1-r09-p1.png","width":1024,"height":1024,"bytes":1686246,"kind":"partial","index":0,"receivedMs":21411.058208000002},{"file":"images/face-portrait/p1-r09-final.png","width":1024,"height":1024,"bytes":1770734,"kind":"final","index":null,"receivedMs":32668.51800000001}]},{"id":"face-portrait-p1-r10","scenario":"face-portrait","mode":"p1","round":10,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":22295.932958999998,"firstBodyMs":22296.54549999989,"firstImageMs":35229.663541999995,"finalImageMs":46886.35037499992,"streamEndMs":46898.312624999904,"responseBytes":4662339,"stages":[{"file":"images/face-portrait/p1-r10-p1.png","width":1024,"height":1024,"bytes":1733836,"kind":"partial","index":0,"receivedMs":35229.663541999995},{"file":"images/face-portrait/p1-r10-final.png","width":1024,"height":1024,"bytes":1762421,"kind":"final","index":null,"receivedMs":46886.35037499992}]},{"id":"face-portrait-p1-r11","scenario":"face-portrait","mode":"p1","round":11,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":18977.048124999972,"firstBodyMs":18977.491374999983,"firstImageMs":24462.795708000194,"finalImageMs":33944.966125000035,"streamEndMs":33953.525458000135,"responseBytes":4650735,"stages":[{"file":"images/face-portrait/p1-r11-p1.png","width":1024,"height":1024,"bytes":1728363,"kind":"partial","index":0,"receivedMs":24462.795708000194},{"file":"images/face-portrait/p1-r11-final.png","width":1024,"height":1024,"bytes":1759193,"kind":"final","index":null,"receivedMs":33944.966125000035}]},{"id":"face-portrait-p1-r12","scenario":"face-portrait","mode":"p1","round":12,"success":true,"requestedPartials":1,"actualPartials":1,"requestedQuality":"low","actualQuality":"low","headersMs":22785.08295900002,"firstBodyMs":22785.258208999876,"firstImageMs":25194.048416999867,"finalImageMs":31744.39037499996,"streamEndMs":31752.810334000038,"responseBytes":4554147,"stages":[{"file":"images/face-portrait/p1-r12-p1.png","width":1024,"height":1024,"bytes":1670529,"kind":"partial","index":0,"receivedMs":25194.048416999867},{"file":"images/face-portrait/p1-r12-final.png","width":1024,"height":1024,"bytes":1744585,"kind":"final","index":null,"receivedMs":31744.39037499996}]}]}</script>
+<script>function completedRuns(state, filters = {}) {
+  if (!Array.isArray(state.runs)) throw new Error('The results contain no run list');
+  return state.runs.filter(run => {
+    if (!run.success || run.scenario === 'source') return false;
+    if (!Array.isArray(run.stages)) throw new Error(`Missing image stages for ${run.id}`);
+    return run.stages.some(stage => stage.kind === 'final')
+      && (!filters.scenario || filters.scenario === 'all' || run.scenario === filters.scenario)
+      && (!filters.mode || filters.mode === 'all' || run.mode === filters.mode)
+      && (!filters.round || filters.round === 'all' || run.round === Number(filters.round));
+  }).sort((left, right) =>
+    state.scenarios.findIndex(scenario => scenario.id === left.scenario)
+      - state.scenarios.findIndex(scenario => scenario.id === right.scenario)
+    || state.modes.findIndex(mode => mode.id === left.mode)
+      - state.modes.findIndex(mode => mode.id === right.mode)
+    || left.round - right.round);
+}
+
+function stageSequence(run) {
+  const final = run.stages.filter(stage => stage.kind === 'final');
+  if (final.length !== 1) throw new Error('A completed run must have exactly one final image');
+  return [...run.stages.filter(stage => stage.kind === 'partial')
+    .sort((left, right) => left.index - right.index), final[0]];
+}
+
+function stageKeys(state) {
+  const maximum = Math.max(0, ...state.modes.map(mode => mode.partials ?? 0));
+  if (!Number.isInteger(maximum) || maximum < 0 || maximum > 3) {
+    throw new Error('Invalid partial-image configuration');
+  }
+  return [...Array.from({ length: maximum }, (_, index) => `p${index + 1}`), 'final'];
+}
+
+function stageMetrics(run) {
+  let previous = 0;
+  return stageSequence(run).map(stage => {
+    if (!Number.isFinite(stage.receivedMs) || stage.receivedMs < previous) {
+      throw new Error('Image receipt times must be finite and ordered');
+    }
+    const gapMs = stage.receivedMs - previous;
+    previous = stage.receivedMs;
+    return { ...stage, key: stage.kind === 'final' ? 'final' : `p${stage.index + 1}`, gapMs };
+  });
+}
+
+function stageAverages(runs) {
+  const stages = runs.flatMap(stageMetrics);
+  return ['p1', 'p2', 'p3', 'final'].map(key => {
+    const values = stages.filter(stage => stage.key === key);
+    return {
+      key, count: values.length,
+      meanReceivedMs: values.length
+        ? values.reduce((sum, stage) => sum + stage.receivedMs, 0) / values.length : null,
+      meanGapMs: values.length
+        ? values.reduce((sum, stage) => sum + stage.gapMs, 0) / values.length : null,
+    };
+  });
+}
+
+function imagePath(file) {
+  if (typeof file !== 'string' || !/^images\/[a-zA-Z0-9._/-]+\.png$/.test(file)
+      || file.split('/').some(part => !part || part === '.' || part === '..')) {
+    throw new Error('Invalid local image path');
+  }
+  return file;
+}
+
+function distribution(values) {
+  if (values.some(value => !Number.isFinite(value))) throw new Error('Statistics require finite values');
+  const sorted = [...values].sort((left, right) => left - right);
+  const average = sorted.length ? sorted.reduce((sum, value) => sum + value, 0) / sorted.length : null;
+  const middle = Math.floor(sorted.length / 2);
+  return {
+    count: sorted.length, mean: average,
+    median: sorted.length ? (sorted.length % 2 ? sorted[middle]
+      : (sorted[middle - 1] + sorted[middle]) / 2) : null,
+    sampleSd: sorted.length > 1
+      ? Math.sqrt(sorted.reduce((sum, value) => sum + (value - average) ** 2, 0) / (sorted.length - 1)) : null,
+    min: sorted.length ? sorted[0] : null, max: sorted.length ? sorted.at(-1) : null,
+  };
+}
+
+function formatSeconds(value) {
+  return Number.isFinite(value) ? `${(value / 1000).toFixed(1)}초` : '—';
+}
+
+function escapeMarkup(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
+}
+
+function percentDifference(value, baseline) {
+  if (!Number.isFinite(value) || !Number.isFinite(baseline) || baseline <= 0) return null;
+  return (value - baseline) / baseline * 100;
+}
+
+function percentText(value) {
+  if (!Number.isFinite(value)) return '비교 불가';
+  if (Math.abs(value) < 0.05) return '0.0% 동일';
+  return `${value < 0 ? '−' : '+'}${Math.abs(value).toFixed(1)}% ${value < 0 ? '단축' : '증가'}`;
+}
+
+function comparisonRows(state) {
+  const all = completedRuns(state);
+  const partialMode = state.modes.find(mode => mode.id === 'p1');
+  if (!partialMode) throw new Error('partial=1 comparison configuration is missing');
+  return state.scenarios.map(scenario => {
+    const plain = all.filter(run => run.scenario === scenario.id && run.mode === 'plain');
+    const partial = all.filter(run => run.scenario === scenario.id && run.mode === 'p1');
+    const baselineMean = distribution(plain.map(run => run.finalImageMs)).mean;
+    const [preview, final] = speedSeries(partial, partialMode);
+    const partial1Mean = distribution(preview.samples.map(sample => sample.value)).mean;
+    const partialFinalMean = distribution(final.samples.map(sample => sample.value)).mean;
+    return {
+      scenario: scenario.id, title: scenario.title,
+      baselineCount: plain.length, baselineMean, partialCount: partial.length,
+      partial1Count: preview.samples.length, partial1Mean, partialFinalMean,
+      partial1Percent: percentDifference(partial1Mean, baselineMean),
+      partialFinalPercent: percentDifference(partialFinalMean, baselineMean),
+    };
+  });
+}
+
+function renderComparisonSummary(state) {
+  const rows = comparisonRows(state).map(row => {
+    const percentCell = (metric, value) => `<td data-metric="${metric}"${Number.isFinite(value) ? ` data-percent="${value}"` : ''}>${percentText(value)}</td>`;
+    return `<tr data-scenario="${escapeMarkup(row.scenario)}"><th scope="row">${escapeMarkup(row.title)}</th>
+      <td>${formatSeconds(row.partial1Mean)}<small>수신 ${row.partial1Count}/${row.partialCount}회</small></td>
+      ${percentCell('partial1Percent', row.partial1Percent)}
+      <td>${formatSeconds(row.partialFinalMean)}<small>n=${row.partialCount}</small></td>
+      ${percentCell('partialFinalPercent', row.partialFinalPercent)}
+      <td>${formatSeconds(row.baselineMean)}<small>n=${row.baselineCount}</small></td></tr>`;
+  }).join('');
+  return `<h3>일반 대비 대기시간 차이</h3><div class="scroll"><table id="relative-speed-summary">
+    <thead><tr><th>타입</th><th>P1 평균</th><th>P1 차이</th><th>partial 최종 평균</th><th>최종 차이</th><th>기준 · 일반 최종 평균</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>
+    <p class="muted">차이(%) = (partial 단계 평균 − 같은 타입 일반 최종 평균) ÷ 일반 최종 평균 × 100.
+      음수는 대기시간 단축, 양수는 증가입니다. P1 미수신은 P1 평균·비율에서 제외합니다.</p>`;
+}
+
+function trialPoints(runs) {
+  return runs.flatMap(run => {
+    if (!Number.isInteger(run.round) || run.round < 1
+        || !Number.isFinite(run.firstImageMs) || !Number.isFinite(run.finalImageMs)
+        || run.firstImageMs < 0 || run.finalImageMs < run.firstImageMs) {
+      throw new Error('Invalid trial timing');
+    }
+    const partial = run.mode === 'p1'
+      ? run.stages.find(stage => stage.kind === 'partial' && stage.index === 0) : null;
+    if (partial && (!Number.isFinite(partial.receivedMs) || partial.receivedMs < 0
+        || partial.receivedMs > run.finalImageMs)) throw new Error('Invalid partial timing');
+    const common = { id: run.id, mode: run.mode, round: run.round, hasPreview: !!partial };
+    return [
+      ...(partial ? [{ ...common, phase: 'p1', timeMs: partial.receivedMs }] : []),
+      { ...common, phase: 'final', timeMs: run.finalImageMs },
+    ];
+  });
+}
+
+function durationSegments(run) {
+  let previous = 0;
+  return trialPoints([run]).map(point => {
+    const segment = {
+      phase: point.phase, startMs: previous, endMs: point.timeMs,
+      durationMs: point.timeMs - previous,
+    };
+    previous = point.timeMs;
+    return segment;
+  });
+}
+
+function speedSeries(runs, mode) {
+  const series = [];
+  if (mode.partials !== null) {
+    series.push({
+      metric: 'partial1Ms', title: 'P1', css: 'first',
+      samples: runs.flatMap(run => {
+        const partial = run.stages.find(stage => stage.kind === 'partial' && stage.index === 0);
+        return partial ? [{ round: run.round, value: partial.receivedMs }] : [];
+      }),
+    });
+  }
+  series.push({
+    metric: 'finalImageMs', title: '최종', css: 'final',
+    samples: runs.map(run => ({ round: run.round, value: run.finalImageMs })),
+  });
+  return series;
+}
+
+function renderSpeedContents(state, maximumMs) {
+  const all = completedRuns(state);
+  const maximum = maximumMs ?? Math.max(10000,
+    Math.ceil(Math.max(0, ...all.map(run => run.finalImageMs)) / 10000) * 10000);
+  if (!Number.isFinite(maximum) || maximum <= 0) throw new Error('Invalid speed chart axis');
+  const seconds = formatSeconds;
+  const xml = escapeMarkup;
+  const span = state.modes.length * 44 + 36;
+  const height = state.scenarios.length * span + 38;
+  const x = value => 145 + value / maximum * 510;
+  const grid = [0, 1, 2, 3, 4].map(index => {
+    const position = x(maximum * index / 4).toFixed(2);
+    return `<line x1="${position}" x2="${position}" y1="30" y2="${height - 10}" class="stat-grid"/>
+      <text x="${position}" y="17" text-anchor="middle" class="stat-axis">${seconds(maximum * index / 4)}</text>`;
+  }).join('');
+  const groups = state.scenarios.map((scenario, scenarioIndex) => {
+    const base = 33 + scenarioIndex * span;
+    const rows = state.modes.map((mode, modeIndex) => {
+      const runs = all.filter(run => run.scenario === scenario.id && run.mode === mode.id);
+      const top = base + 30 + modeIndex * 44;
+      const series = speedSeries(runs, mode);
+      const bars = series.map((metric, offset) => {
+        const stats = distribution(metric.samples.map(sample => sample.value));
+        const y = top + (series.length === 1 ? 8 : offset * 16);
+        if (!stats.count) return `<g data-metric="${metric.metric}" data-count="0" data-scenario="${xml(scenario.id)}" data-mode="${xml(mode.id)}">
+          <text x="129" y="${y + 3}" text-anchor="end" class="stat-axis">${metric.title}</text>
+          <text x="155" y="${y + 3}" class="stat-axis">${runs.length ? `미수신 · 0/${runs.length}` : '미수집'}</text></g>`;
+        return `<g data-metric="${metric.metric}" data-mean-ms="${stats.mean}" data-count="${stats.count}"
+          data-scenario="${xml(scenario.id)}" data-mode="${xml(mode.id)}">
+          <title>${xml(scenario.title)} ${xml(mode.title)} ${metric.title}: 평균 ${seconds(stats.mean)}, 중앙값 ${seconds(stats.median)}, 표본 표준편차 ${seconds(stats.sampleSd)}, 수신 ${stats.count}/${runs.length}</title>
+          <text x="129" y="${y + 3}" text-anchor="end" class="stat-axis">${metric.title}</text>
+          <rect x="145" y="${y - 5}" width="${(x(stats.mean) - 145).toFixed(2)}" height="7" class="stat-bar ${metric.css}"/>
+          <line x1="${x(stats.min).toFixed(2)}" x2="${x(stats.max).toFixed(2)}" y1="${y - 1}" y2="${y - 1}" class="stat-range"/>
+          ${metric.samples.map(sample => `<circle cx="${x(sample.value).toFixed(2)}" cy="${y - 1}" r="2" class="stat-sample">
+            <title>실행 ${sample.round}: ${seconds(sample.value)}</title></circle>`).join('')}
+          <text x="700" y="${y + 3}" class="stat-value">평균 ${seconds(stats.mean)} · 중앙값 ${seconds(stats.median)} · s ${seconds(stats.sampleSd)} · ${stats.count}/${runs.length}회</text>
+        </g>`;
+      }).join('');
+      return `<text x="4" y="${top + 9}" class="stat-mode">${mode.id === 'plain' ? '일반' : `partial=${mode.partials}`}
+        <tspan class="stat-axis"> · n=${runs.length}</tspan></text>${bars}`;
+    }).join('');
+    return `<text x="4" y="${base + 10}" class="stat-heading">${xml(scenario.title)}</text>${rows}`;
+  }).join('');
+  return `<h2>1. 평균 속도 비교</h2>
+    <p>일반은 최종 결과만, partial=1은 중간 결과 P1과 최종 결과를 나누어 비교합니다. 같은 시간축이며 짧을수록 빠릅니다.</p>
+    <p class="muted"><span class="legend-plain">회색 = 일반 최종</span> · <span class="legend-partial">옅은 파랑 = P1 / 진한 파랑 = partial 최종</span> · 점 = 개별 실행 · 선 = 최소~최대 · s = 표본 표준편차</p>
+    <div class="scroll"><svg class="stats-chart" viewBox="0 0 1100 ${height}" role="img"
+      aria-label="일반 최종과 partial P1·최종의 평균 및 실행별 분포"><title>일반 최종 / partial P1·최종 비교</title>${grid}${groups}</svg></div>
+    <p class="muted">P1 평균은 실제로 P1을 받은 요청만 계산합니다. 미수신을 0초나 최종 시간으로 대신하지 않습니다.
+      최종 평균은 완료된 전체 요청 기준입니다. 수신 횟수를 함께 확인하세요.</p>
+    ${renderComparisonSummary(state)}`;
+}
+
+function initializeImageZoom(root) {
+  const dialog = document.getElementById('image-zoom');
+  const image = document.getElementById('image-zoom-image');
+  const title = document.getElementById('image-zoom-title');
+  const original = document.getElementById('image-zoom-original');
+  const failure = document.getElementById('image-zoom-error');
+  let trigger;
+  root.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0
+        || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const source = event.target.closest('img') || event.target.closest('a')?.querySelector('img');
+    if (!source || source.hidden) return;
+    event.preventDefault();
+    trigger = source.closest('a') || source;
+    trigger.focus({ preventScroll: true });
+    const group = source.closest('.mode-group, .player');
+    const replay = source.closest('.replay');
+    const context = [
+      source.closest('.scenario-overview')?.querySelector('h3')?.textContent,
+      group ? group.dataset.mode === 'plain' ? '일반' : 'partial=1' : null,
+      source.closest('.run-result')?.querySelector('h5')?.textContent
+        || (replay ? `실행 ${replay.querySelector('.round').value}` : null),
+      source.closest('.stage')?.querySelector('figcaption strong')?.textContent
+        || source.closest('.player')?.querySelector('.phase')?.textContent || source.alt,
+    ].filter(Boolean).join(' · ');
+    title.textContent = context;
+    image.alt = context;
+    failure.hidden = true;
+    image.hidden = false;
+    original.disabled = true;
+    original.textContent = '100% 원본';
+    original.setAttribute('aria-pressed', 'false');
+    dialog.classList.remove('original-size');
+    image.src = source.currentSrc || source.src;
+    dialog.showModal();
+  });
+  root.addEventListener('keydown', event => {
+    if (event.target.matches('.frame img') && ['Enter', ' '].includes(event.key)) {
+      event.preventDefault();
+      event.target.click();
+    }
+  });
+  image.addEventListener('load', () => { original.disabled = false; });
+  image.addEventListener('error', () => {
+    failure.hidden = false;
+    image.hidden = true;
+    original.disabled = true;
+  });
+  original.addEventListener('click', () => {
+    const active = dialog.classList.toggle('original-size');
+    original.setAttribute('aria-pressed', String(active));
+    original.textContent = active ? '화면 맞춤' : '100% 원본';
+  });
+  document.getElementById('image-zoom-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', event => {
+    if (event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right
+        || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+  });
+  dialog.addEventListener('close', () => {
+    if (dialog.open) return;
+    image.removeAttribute('src');
+    if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+    trigger = null;
+  });
+}
+
+function initializeReport() {
+  const state = JSON.parse(document.getElementById('report-data').textContent);
+  const keys = stageKeys(state);
+  const all = completedRuns(state);
+  const root = document.getElementById('runs');
+  const errorBox = document.createElement('p');
+  errorBox.id = 'error';
+  errorBox.hidden = true;
+  errorBox.setAttribute('role', 'alert');
+  const seconds = value => Number.isFinite(value) ? `${(value / 1000).toFixed(1)}초` : '—';
+  const size = value => Number.isFinite(value) ? `${(value / 1048576).toFixed(2)} MB` : '미표기';
+  const node = (tag, className, text) => {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+    return element;
+  };
+  function picture(stage, alt, lazy) {
+    const image = node('img');
+    image.src = imagePath(stage.file);
+    image.alt = alt;
+    image.width = stage.width || 1024;
+    image.height = stage.height || 1024;
+    image.loading = lazy ? 'lazy' : 'eager';
+    image.decoding = 'async';
+    image.addEventListener('error', () => {
+      image.after(node('span', 'image-error', '이미지 파일을 읽지 못했습니다.'));
+    }, { once: true });
+    return image;
+  }
+  function figure(stage, title, average, total, baseline) {
+    const item = node('figure', `stage ${stage.kind || 'input'}`);
+    item.dataset.phase = stage.kind === 'partial' ? 'p1' : stage.kind || 'input';
+    const link = node('a');
+    link.href = imagePath(stage.file);
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.title = '클릭하여 크게 보기';
+    link.setAttribute('aria-haspopup', 'dialog');
+    link.append(picture(stage, title, true));
+    item.append(link);
+    const caption = node('figcaption');
+    caption.append(node('strong', '', title));
+    if (stage.kind) {
+      caption.append(node('span', '', `요청 후 ${seconds(stage.receivedMs)} · 추가 ${seconds(stage.gapMs)}`));
+      caption.append(node('small', '', `같은 설정 평균 ${seconds(average.meanReceivedMs)} · n=${average.count}/${total}`));
+      if (baseline !== undefined) caption.append(node('small', 'relative-speed',
+        `일반 최종 평균 대비 ${percentText(percentDifference(stage.receivedMs, baseline))}`));
+    } else {
+      caption.append(node('span', '', `${stage.width} × ${stage.height} · ${size(stage.bytes)}`));
+      caption.append(node('small', '', '업로드 단독 시간은 미측정'));
+    }
+    item.append(caption);
+    return item;
+  }
+  function missingPartial() {
+    const item = node('figure', 'stage missing');
+    item.dataset.phase = 'p1';
+    item.append(node('div', 'missing-image', 'P1 미수신'));
+    item.append(node('figcaption', '', '이번 요청은 중간 이미지 없이 최종만 수신 · 시간 없음'));
+    return item;
+  }
+  function modeGroup(scenario, mode) {
+    const runs = all.filter(run => run.scenario === scenario.id && run.mode === mode.id);
+    const averages = stageAverages(runs).filter(stage => keys.includes(stage.key));
+    const byKey = new Map(averages.map(average => [average.key, average]));
+    const baseline = distribution(all.filter(run => run.scenario === scenario.id && run.mode === 'plain')
+      .map(run => run.finalImageMs)).mean;
+    const group = node('div', `mode-group ${mode.id}`);
+    group.id = `runs-${scenario.id}-${mode.id}`;
+    group.dataset.scenario = scenario.id;
+    group.dataset.mode = mode.id;
+    group.append(node('h4', '', `${mode.id === 'plain' ? '일반 · 최종 결과' : 'partial=1 · P1 → 최종'} (${runs.length}/${state.repetitions}회 완료)`));
+    group.append(node('p', 'mode-average', averages.filter(stage => mode.id !== 'plain' || stage.key === 'final')
+      .map(stage => `${stage.key === 'final' ? '최종' : 'P1'} 평균 ${seconds(stage.meanReceivedMs)} · 추가 ${seconds(stage.meanGapMs)} · 수신 ${stage.count}/${runs.length}회`
+        + (mode.id === 'p1' ? ` · 일반 대비 ${percentText(percentDifference(stage.meanReceivedMs, baseline))}` : '')).join(' / ')));
+    if (!runs.length) {
+      group.append(node('p', 'muted', '아직 완료된 결과가 없습니다.'));
+      return group;
+    }
+    const grid = node('div', mode.id === 'plain' ? 'plain-grid' : 'partial-grid');
+    for (const run of runs) {
+      const result = node('article', 'run-result');
+      result.dataset.runId = run.id;
+      result.id = `result-${run.id}`;
+      result.append(node('h5', '', `실행 ${run.round}`));
+      const stages = new Map(stageMetrics(run).map(stage => [stage.key, stage]));
+      const strip = node('div', 'run-stages');
+      if (mode.id !== 'plain') {
+        strip.append(stages.has('p1') ? figure(stages.get('p1'), 'P1', byKey.get('p1'), runs.length, baseline) : missingPartial());
+      }
+      strip.append(figure(stages.get('final'), '최종 이미지', byKey.get('final'), runs.length,
+        mode.id === 'p1' ? baseline : undefined));
+      result.append(strip);
+      result.append(node('p', 'run-meta', `헤더 ${seconds(run.headersMs)} · 첫 본문 ${seconds(run.firstBodyMs)} · 종료 ${seconds(run.streamEndMs)} · ${size(run.responseBytes)} · quality ${run.actualQuality}`));
+      grid.append(result);
+    }
+    group.append(grid);
+    const template = document.getElementById(`timeline-${scenario.id}-${mode.id}`);
+    if (!template) throw new Error('개별 타임라인을 찾을 수 없습니다.');
+    const timeline = node('details');
+    timeline.append(node('summary', '', `개별 ${runs.length}회 + 평균 바`), template.content.cloneNode(true));
+    group.append(timeline);
+    return group;
+  }
+  function replayPanel(scenario) {
+    const panel = node('details', 'replay');
+    panel.dataset.scenario = scenario.id;
+    panel.append(node('summary', '', '같은 회차의 일반 vs partial=1 동시 재생 · 3배'));
+    const controls = node('div', 'controls');
+    const round = node('input', 'round');
+    round.type = 'hidden';
+    round.value = '1';
+    const speed = node('input', 'speed');
+    speed.type = 'hidden';
+    speed.value = '3';
+    const play = node('button', 'play', '재생');
+    play.type = 'button';
+    play.hidden = true;
+    const stop = node('button', 'stop', '정지');
+    stop.type = 'button';
+    stop.disabled = true;
+    controls.append(round, speed, play);
+    let ready = false;
+    for (let index = 1; index <= state.repetitions; index++) {
+      const available = all.filter(run => run.scenario === scenario.id && run.round === index);
+      const button = node('button', 'replay-round', `실행 ${index}`);
+      button.type = 'button';
+      button.disabled = available.length !== state.modes.length;
+      if (!button.disabled && !ready) { round.value = String(index); ready = true; }
+      button.addEventListener('click', () => {
+        for (const active of document.querySelectorAll('.replay .stop')) if (!active.disabled) active.click();
+        round.value = String(index);
+        play.click();
+      });
+      controls.append(button);
+    }
+    play.disabled = !ready;
+    controls.append(stop, node('span', 'play-status', '회차 버튼을 누르면 저장된 시간대로 재생합니다. 추가 API 호출은 없습니다.'));
+    panel.append(controls);
+    const players = node('div', 'players');
+    for (const mode of state.modes) {
+      const player = node('div', 'player');
+      player.dataset.mode = mode.id;
+      player.append(node('h4', '', mode.title));
+      const frame = node('div', 'frame');
+      const image = node('img');
+      image.hidden = true;
+      image.alt = `${mode.title} 기록 재생`;
+      image.tabIndex = 0;
+      image.setAttribute('role', 'button');
+      image.setAttribute('aria-haspopup', 'dialog');
+      frame.append(image, node('span', 'placeholder', '대기'));
+      player.append(frame, node('p', 'phase', '—'), node('p', 'clock', '0.0초'));
+      players.append(player);
+    }
+    panel.append(players);
+    return panel;
+  }
+  const style = document.createElement('style');
+  style.id = 'all-runs-style';
+  style.textContent = `
+    #runs.all-runs .scenario-overview{padding:24px 0;border-top:1px solid #bbb}
+    #runs.all-runs .scenario-overview h3{margin:0 0 14px;font-size:19px}
+    #runs.all-runs .shared-input{display:flex;gap:18px;align-items:flex-start;margin:14px 0 24px}
+    #runs.all-runs .shared-input .stage{flex:none;width:180px;min-width:0}
+    #runs.all-runs .shared-prompt{font-size:12px;line-height:1.6;color:#555;margin:0}
+    #runs.all-runs .mode-group{padding:16px 0 22px;border-top:1px solid #ddd}
+    #runs.all-runs .mode-group h4{font-size:16px;margin:0 0 8px}
+    #runs.all-runs .mode-group.p1{border-color:#b4c6d6}
+    #runs.all-runs .mode-group.p1 h4,#runs.all-runs .relative-speed{color:#456c8e}
+    #runs.all-runs .mode-average{font-size:12px;margin:0 0 14px;color:#555}
+    #runs.all-runs .plain-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+    #runs.all-runs .partial-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px}
+    #runs.all-runs .run-result{border:1px solid #ddd;padding:10px;min-width:0;break-inside:avoid}
+    #runs.all-runs .run-result h5{font-size:13px;margin:0 0 8px}
+    #runs.all-runs .run-stages{display:flex;gap:10px;align-items:flex-start}
+    #runs.all-runs .run-stages .stage{flex:1;min-width:0;max-width:none;margin:0}
+    #runs.all-runs .run-stages img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+    #runs.all-runs .run-stages figcaption{font-size:11px;line-height:1.5}
+    #runs.all-runs .run-stages figcaption small{font-size:10px}
+    #runs.all-runs .run-meta{font-size:10px;color:#666;margin:7px 0 0}
+    #runs.all-runs .missing-image{aspect-ratio:1;border:1px dashed #aaa;background:#f7f7f7;display:grid;place-items:center;font-size:12px;color:#666}
+    #statistics .legend-plain{color:#666}#statistics .legend-partial{color:#456c8e}
+    #statistics g[data-mode="plain"] .stat-bar{fill:#777}
+    #statistics g[data-mode="p1"] .stat-bar.first{fill:#9db6cc}
+    #statistics g[data-mode="p1"] .stat-bar.final{fill:#456c8e}
+    #statistics g[data-mode="p1"] .stat-range,#statistics g[data-mode="p1"] .stat-sample{stroke:#456c8e}
+    @media(max-width:600px){#runs.all-runs .plain-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#runs.all-runs .partial-grid{grid-template-columns:1fr}#runs.all-runs .shared-input{flex-wrap:wrap}}
+  `;
+  document.getElementById(style.id)?.remove();
+  document.head.append(style);
+  const statistics = document.getElementById('statistics');
+  statistics.innerHTML = renderSpeedContents(state);
+  const separateGallery = document.getElementById('images');
+  if (separateGallery && !root.contains(separateGallery)) separateGallery.remove();
+  const title = node('h2', '', '3. 개별 실행 · 입력 / 중간 / 최종');
+  title.id = 'images';
+  const overview = node('div', 'all-run-results');
+  overview.id = 'all-run-results';
+  root.classList.add('all-runs');
+  root.replaceChildren(title, node('p', 'muted', '타입별로 일반과 partial을 나누어 모든 완료 회차를 펼쳐 표시합니다. P1과 최종 이미지는 클릭 없이 바로 비교할 수 있으며, 사진을 누르면 크게 볼 수 있습니다.'), errorBox, overview);
+  for (const scenario of state.scenarios) {
+    const section = node('article', 'scenario-overview');
+    section.id = `overview-${scenario.id}`;
+    section.dataset.scenario = scenario.id;
+    section.append(node('h3', '', scenario.title));
+    const input = node('div', 'shared-input');
+    if (scenario.kind === 'edit') {
+      input.append(figure({ ...state.source, kind: null }, '공통 입력 원본', null, 0),
+        node('p', 'muted', '일반과 partial의 모든 회차에 같은 입력 사진을 사용했습니다. 업로드 단독 시간은 미측정입니다.'));
+    } else {
+      input.append(node('p', 'shared-prompt', `공통 텍스트 입력 · 이미지 입력 없음\n${scenario.prompt}`));
+    }
+    section.append(input);
+    for (const mode of state.modes) section.append(modeGroup(scenario, mode));
+    section.append(replayPanel(scenario));
+    overview.append(section);
+  }
+  for (const button of document.querySelectorAll('[data-explore-scenario]')) {
+    button.addEventListener('click', () => {
+      document.getElementById(`runs-${button.dataset.exploreScenario}-${button.dataset.exploreMode}`)
+        .scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+  initializeImageZoom(root);
+}
+
+if (typeof module !== 'undefined') module.exports = {
+  completedRuns, stageSequence, stageKeys, stageMetrics, stageAverages, imagePath,
+  distribution, speedSeries, renderSpeedContents, trialPoints, durationSegments, percentDifference, percentText, comparisonRows,
+};
+if (typeof document !== 'undefined') {
+  try { initializeReport(); } catch (error) {
+    let box = document.getElementById('error');
+    if (!box) { box = document.createElement('p'); box.id = 'error'; box.setAttribute('role', 'alert'); document.body.append(box); }
+    box.textContent = `보고서 표시 오류: ${error.message}`;
+    box.hidden = false;
+    console.error(error);
+  }
+}
+</script>
+<script>
+const reportSnapshot = JSON.parse(document.getElementById('report-data').textContent);
+const reportRuns = reportSnapshot.runs;
+for (const replay of document.querySelectorAll('.replay')) {
+  const play = replay.querySelector('.play'), stop = replay.querySelector('.stop');
+  const status = replay.querySelector('.play-status'), round = replay.querySelector('.round');
+  const speed = replay.querySelector('.speed');
+  let generation = 0, animation = 0;
+  function idle() { cancelAnimationFrame(animation); play.disabled = false; stop.disabled = true; speed.disabled = false; }
+  stop.addEventListener('click', () => { generation++; idle(); status.textContent = '재생 정지'; });
+  play.addEventListener('click', async () => {
+    const current = ++generation;
+    const selected = reportRuns.filter(run => run.scenario === replay.dataset.scenario && run.round === Number(round.value));
+    if (selected.length !== reportSnapshot.modes.length) { status.textContent = '이 회차는 두 설정의 결과가 모두 수집되지 않았습니다.'; return; }
+    play.disabled = true; stop.disabled = false; speed.disabled = true;
+    status.textContent = '재생용 이미지를 읽는 중…';
+    try {
+      const cached = await Promise.all(selected.map(async run => ({ run, images: await Promise.all(run.stages.map(async stage => {
+        const image = new Image(); image.src = stage.file; await image.decode(); return image;
+      })) })));
+      if (current !== generation) return;
+      const players = cached.map(({ run, images }) => {
+        const element = replay.querySelector('[data-mode="' + run.mode + '"]');
+        element.querySelector('img').hidden = true; element.querySelector('.placeholder').hidden = false;
+        element.querySelector('.phase').textContent = '첫 이미지 대기';
+        return { run, images, element, index: -1 };
+      });
+      const maximum = Math.max(...selected.map(run => run.finalImageMs));
+      const multiplier = Number(speed.value), start = performance.now();
+      status.textContent = '동일 시나리오·회차를 ' + multiplier + '배속으로 비교합니다.';
+      function frame() {
+        if (current !== generation) return;
+        const elapsed = Math.min(maximum, (performance.now() - start) * multiplier);
+        for (const player of players) {
+          let index = -1;
+          player.run.stages.forEach((stage, i) => { if (stage.receivedMs <= elapsed) index = i; });
+          if (index >= 0 && index !== player.index) {
+            const stage = player.run.stages[index], image = player.element.querySelector('img');
+            image.src = player.images[index].src; image.hidden = false;
+            player.element.querySelector('.placeholder').hidden = true;
+            player.element.querySelector('.phase').textContent = (stage.kind === 'final' ? '최종' : 'P' + (stage.index + 1))
+              + ' · ' + (stage.receivedMs / 1000).toFixed(1) + '초';
+            player.index = index;
+          }
+          player.element.querySelector('.clock').textContent = (Math.min(elapsed, player.run.finalImageMs) / 1000).toFixed(1) + '초';
+        }
+        if (elapsed < maximum) animation = requestAnimationFrame(frame);
+        else { idle(); status.textContent = '재생 완료 · 추가 API 호출 없음'; }
+      }
+      animation = requestAnimationFrame(frame);
+    } catch (error) {
+      if (current === generation) { idle(); status.textContent = '재생 오류: ' + error.message; }
+    }
+  });
+}
+</script>
+</body></html>
