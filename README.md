@@ -1,5 +1,7 @@
 # 이미지 생성 응답 속도 비교
 
+[웹 보고서 열기](https://hijigoo.github.io/image-latency-report/)
+
 `quality=low`, 1024×1024 PNG 조건에서 일반 응답과 `partial_images=1`을 비교한 정적 보고서입니다.
 
 - 일상 사진 생성, 전체 사진 스타일 변환, 얼굴·반려동물 캐릭터 변환의 3가지 작업
